@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #0A3D24;
+  --primary-dark: #062817;
+  --primary-light: #135A37;
+
+  --accent: #C88A2C;
+  --accent-hover: #B2751E;
+  --accent-light: #FEF3C7;
+
+  --bg: #F8FAF9;
+  --surface: #FFFFFF;
+  --ink: #112217;
+  --muted: #54665C;
+  --line: #E1EBE4;
+
+  --danger: #B91C1C;
+  --danger-bg: #FEF2F2;
+
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+
+  --success: #15803D;
+  --success-bg: #F0FDF4;
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background-color: var(--bg);
+  }
+
+  h1, h2, h3, .font-serif-title {
+    font-family: 'Merriweather', Georgia, serif;
+  }
+
+  code, kbd, samp, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 61, 36, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(10, 61, 36, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(10, 61, 36, 0.65);
+}
+
+/* Forensic Grid Pattern for tactical screens & charts */
+.forensic-grid {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(10, 61, 36, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(10, 61, 36, 0.04) 1px, transparent 1px);
+}
+
+.forensic-grid-dark {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(200, 138, 44, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(10, 61, 36, 0.15) 1px, transparent 1px);
+}
+
+/* Audio Waveform Pulsing Animation */
+@keyframes audio-pulse {
+  0%, 100% { height: 15%; opacity: 0.6; }
+  50% { height: 95%; opacity: 1; }
+}
+
+.animate-audio-bar {
+  animation: audio-pulse 1.2s ease-in-out infinite;
+}

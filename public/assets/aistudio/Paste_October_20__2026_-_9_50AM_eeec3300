@@ -1,0 +1,1247 @@
+# MASTER DEVELOPMENT PROMPT — ALFADetect
+## Professional Forensic Platform Enhancement, Security Hardening, and Real Functional Implementation
+
+Act as a **senior full-stack software architect, cybersecurity engineer, AI/ML engineer, digital-forensics specialist, database architect, and professional UI/UX engineer**.
+
+Your task is to inspect, enhance, secure, and complete my existing project, **ALFADetect — Explainable AI-Based Detection of Deepfake Audio for Digital Forensics and Legal Evidence Verification**.
+
+This is an existing software project. I do NOT want a newly invented application, a generic admin dashboard, a static prototype, or a visually impressive interface filled with fake information.
+
+I want my existing second ZIP to become a polished, professional, secure, genuinely functional forensic application while preserving its existing interface, components, navigation structure, and useful features.
+
+---
+
+# 1. FILE AUTHORITY AND STRICT PRIORITIES
+
+I have supplied three files. Each has a specific purpose.
+
+### File A — ZIP 1: Design and Color Reference Only
+
+Use ZIP 1 exclusively as the authoritative reference for the approved color palette, typography, CSS variables, and existing design tokens.
+
+Inspect its actual source files, especially `src/index.css`, and reuse the exact values specified below.
+
+**Do not copy its mock authentication, default users, sample cases, simulated analyses, or fake forensic results.** Its purpose is to provide the design reference, not the application implementation.
+
+### File B — ZIP 2: The Only Project to Modify
+
+ZIP 2 is my existing application and the only codebase that must be enhanced.
+
+I like its existing UI and overall structure. Preserve its existing pages, sidebar, navigation, components, layouts, and useful functionality wherever possible.
+
+Do not discard the application and generate a completely different dashboard. Do not replace it with a generic template. Do not simplify it by removing important modules.
+
+Improve the current application in place. Fix its problems, connect its workflows, strengthen its security, and implement its missing functionality.
+
+### File C — SRS DOCX: The Requirements Authority
+
+Treat my supplied Software Requirements Specification as the source of truth for the application's intended functionality, stakeholder roles, forensic workflows, AI analyses, security requirements, speaker verification, voice-disguise analysis, and reporting.
+
+Review the complete document before making implementation decisions.
+
+Do not silently omit requirements. If a requirement conflicts with the existing code, identify the conflict and implement a clear, technically sound solution. If a feature cannot genuinely be implemented without a trained model, dataset, credentials, or external service, explain the limitation instead of fabricating its functionality.
+
+### Required priority order
+
+1. My explicit instructions in this prompt.
+2. The SRS for application requirements and expected behavior.
+3. ZIP 1 for the exact approved visual design tokens.
+4. ZIP 2 for the existing interface, architecture, and reusable implementation.
+
+**The final application must look like my improved second ZIP, use the exact approved palette from ZIP 1, and follow the SRS. Do not substitute your own design direction.**
+
+---
+
+# 2. STRICT COLOR PALETTE — DO NOT INVENT OR CHANGE COLORS
+
+Read ZIP 1's `src/index.css` and use these exact color tokens as the application's approved palette.
+
+```css
+:root {
+  --primary: #0A3D24;
+  --primary-dark: #062817;
+  --primary-light: #135A37;
+
+  --accent: #C88A2C;
+  --accent-hover: #B2751E;
+  --accent-light: #FEF3C7;
+
+  --bg: #F8FAF9;
+  --surface: #FFFFFF;
+  --ink: #112217;
+  --muted: #54665C;
+  --line: #E1EBE4;
+
+  --danger: #B91C1C;
+  --danger-bg: #FEF2F2;
+
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+
+  --success: #15803D;
+  --success-bg: #F0FDF4;
+}
+```
+
+These are the approved brand colors. Use them consistently across the application.
+
+### Required styling rules
+
+- Primary brand color: `#0A3D24`
+- Dark primary: `#062817`
+- Light primary: `#135A37`
+- Accent and important actions: `#C88A2C`
+- Accent hover: `#B2751E`
+- Light accent background: `#FEF3C7`
+- Main application background: `#F8FAF9`
+- Cards, panels, and modal surfaces: `#FFFFFF`
+- Main text: `#112217`
+- Muted text: `#54665C`
+- Borders and dividers: `#E1EBE4`
+- Error states: `#B91C1C` and `#FEF2F2`
+- Warning states: `#D97706` and `#FFFBEB`
+- Success states: `#15803D` and `#F0FDF4`
+
+Reuse the approved typography from ZIP 1:
+
+- Body font: `Plus Jakarta Sans`, with the existing system fallbacks.
+- Main headings: `Merriweather`, with the existing Georgia/serif fallbacks.
+
+Preserve the existing visual direction of ZIP 2 while adapting its colors to this approved palette. Keep its recognizable sidebar, page structure, spacing patterns, navigation hierarchy, and useful component designs.
+
+The dark forensic sidebar may remain dark, but derive its styling from the approved `--primary-dark` and primary tokens instead of introducing an unrelated navy, purple, blue, or neon palette.
+
+You may use lighter or darker opacity variations of the approved colors for subtle borders, overlays, focus states, or backgrounds. Do not create new unrelated brand colors.
+
+**Do not invent a new palette. Do not replace the approved green and gold with blue, purple, cyan, pink, or any other design system. Do not add gradients that introduce unrelated colors.**
+
+Do not remove useful visual elements simply because you prefer another style. Improve their consistency and polish within the approved design.
+
+---
+
+# 3. REQUIRED PROFESSIONAL QUALITY
+
+The application must look and behave like a serious forensic case-management platform, not a student dashboard full of decorative cards.
+
+The interface should be:
+
+- Professional, refined, consistent, and visually high quality.
+- Appropriate for forensic investigators, forensic experts, administrators, and authorized legal personnel.
+- Clean and information-dense without being cluttered.
+- Easy to navigate and understandable for users who are not AI specialists.
+- Responsive on desktop, laptop, tablet, and smaller screens.
+- Accessible, with readable contrast, keyboard navigation, visible focus states, labels, and clear validation messages.
+- Consistent across every page, form, modal, table, chart, and report preview.
+
+Use professional typography, consistent spacing, appropriate white space, restrained shadows, clear headings, clean data tables, meaningful status indicators, and well-designed loading and empty states.
+
+Avoid oversized decorative elements, excessive animations, meaningless statistics, random icons, unnecessary gradients, and excessive rounded cards.
+
+Keep motion subtle and purposeful. Respect reduced-motion preferences.
+
+Use charts only when they represent real persisted or computed data. Never generate a chart from arbitrary values just to make a page look complete.
+
+The interface must remain visually consistent with the existing second ZIP.
+
+---
+
+# 4. FIRST INSPECT THE ENTIRE PROJECT
+
+Before editing anything, inspect both ZIPs and the complete SRS.
+
+Examine:
+
+- Project directory structure.
+- Existing React pages and components.
+- Sidebar and navbar.
+- Authentication and registration.
+- Role and permission logic.
+- Backend endpoints.
+- Database and persistence layer.
+- Evidence upload and file storage.
+- Hash calculation and integrity verification.
+- AI model integration.
+- Explainable AI visualizations.
+- Speaker verification.
+- Voice-disguise and voice-condition analysis.
+- Chain of custody.
+- Audit logs.
+- Report generation.
+- User management.
+- Notifications.
+- Settings and configuration.
+- Existing tests, dependencies, environment variables, and build scripts.
+
+Create an internal implementation checklist mapping every SRS requirement to its current status.
+
+Classify each feature as:
+
+1. Implemented and verified.
+2. Partially implemented.
+3. UI-only or simulated.
+4. Missing.
+5. Blocked by an unavailable model, dataset, credential, or external service.
+
+Then work through the highest-priority issues without unnecessarily rewriting the entire project.
+
+Do not stop after producing an analysis or a list of recommendations. Implement the changes in the available code-editing environment.
+
+Preserve working features. Make targeted, maintainable changes. Do not break unrelated modules.
+
+---
+
+# 5. AUTHENTICATION — NO DEFAULT ACCESS
+
+Implement genuine authentication and secure session handling.
+
+### Public access
+
+Public users may access only appropriate informational pages, such as a public landing page, product overview, or sign-in and registration pages.
+
+Every protected application route, API, case, evidence file, report, analysis result, audit record, and administrative feature must require appropriate authentication and authorization.
+
+Clicking a protected feature such as Explore, Dashboard, Cases, Evidence, or Reports while signed out must redirect the user to sign in or show an appropriate authentication requirement.
+
+Do not allow protected screens to expose private information before login.
+
+### Registration
+
+Create a proper registration process with validated fields, duplicate-account checks, secure password handling, and clear feedback.
+
+If users can request a role during registration, treat the selected role as a **request only**. Never grant administrative, expert, or other elevated permissions merely because the user selected that role.
+
+Where approval is required, store the account as pending until an authorized administrator approves and assigns its permissions.
+
+Users must not be able to approve themselves or modify their role by changing browser state, URL parameters, local storage, or API requests.
+
+### Sign-in and sessions
+
+- Use real server-side authentication.
+- Hash passwords using Argon2id, bcrypt, or an appropriately configured equivalent.
+- Use secure session management or properly implemented JWT authentication.
+- Configure session expiry and revocation.
+- Protect against brute-force login attempts and credential enumeration.
+- Use secure, HTTP-only, appropriately configured cookies if cookie-based sessions are chosen.
+- Implement CSRF protection when applicable.
+- Validate all inputs on the server.
+- Provide meaningful, non-sensitive error messages.
+- Implement logout that actually invalidates the session.
+- Protect against unauthorized session reuse and privilege escalation.
+
+Never prefill working credentials.
+
+Never automatically sign in a sample user.
+
+Never create a hidden default administrator with a known password.
+
+Never display a fake OTP, simulated inbox, hardcoded authentication token, or fabricated successful login.
+
+Do not put passwords, secrets, signing keys, or privileged credentials in frontend source code.
+
+Provide a secure initial administrator setup process using environment configuration or a documented one-time setup command, without shipping a default public password.
+
+---
+
+# 6. STRICT ROLE-BASED ACCESS CONTROL
+
+Use the SRS to define the exact role permissions.
+
+The SRS identifies Administrator, Investigator, and Forensic Expert as core application roles and identifies Legal Authority as a stakeholder who needs access to appropriate reports and expert validations. Inspect the full requirements and existing implementation before defining the final permission matrix.
+
+If Legal Authority access is implemented as a separate application role, make it read-only and limited to explicitly authorized cases and reports unless the SRS states otherwise.
+
+Implement a centralized permission system.
+
+### Administrator
+
+Depending on the approved permission matrix, allow authorized administrative tasks such as:
+
+- Managing user accounts and role approvals.
+- Assigning and revoking roles.
+- Managing AI model configurations and thresholds.
+- Reviewing system health and model metrics.
+- Viewing permitted administrative audit records.
+- Managing application settings.
+
+Administrative privileges must not automatically permit silent alteration or deletion of forensic evidence or historical audit events.
+
+### Investigator
+
+Allow permitted investigation workflows, including:
+
+- Creating and managing authorized cases.
+- Uploading evidence audio.
+- Uploading reference voice samples.
+- Recording the required consent or lawful-authority declaration.
+- Running available analyses.
+- Reviewing results and explanations.
+- Requesting expert validation.
+- Generating reports within permitted case access.
+
+### Forensic Expert
+
+Allow permitted expert workflows, including:
+
+- Reviewing model findings and explanations.
+- Reviewing speaker similarity and voice-disguise findings.
+- Adding expert annotations.
+- Marking findings as Validated, Disputed, or Needs Further Review.
+- Overriding findings only through an explicitly authorized process.
+- Requiring a reason for each override.
+- Recording review decisions in the audit log.
+
+### Legal Authority
+
+If implemented according to the SRS, provide limited read-only access to explicitly authorized reports, findings, and expert validations.
+
+Do not allow this role to upload, modify, or delete evidence unless the approved requirements explicitly authorize it.
+
+### Critical role restrictions
+
+- A user must never change their assigned role from the navbar, profile, frontend state, or local storage.
+- Remove or disable the existing role-switching behavior if it lets ordinary users impersonate other roles.
+- A role remains fixed for the authenticated session unless an authorized administrative change or legitimate reauthentication requires it to be refreshed.
+- The server must reload or validate current permissions rather than trusting a role value sent by the client.
+- Enforce permissions on every protected API endpoint.
+- Enforce case-level authorization for cases, evidence, reports, and analysis results.
+- Prevent insecure direct object references and IDOR attacks.
+- Prevent users from accessing another investigator's cases simply by changing a case ID.
+- Hide unauthorized navigation items, but never treat hidden navigation as the security boundary.
+- Log permission changes and administrative actions.
+
+Build a clear permission matrix and test it against the backend.
+
+---
+
+# 7. REMOVE ALL FAKE AND DUMMY DATA
+
+This requirement is mandatory.
+
+Search the entire application for:
+
+- Mock users and preloaded accounts.
+- Hardcoded case records.
+- Fake evidence.
+- Fabricated audio metadata.
+- Random hashes.
+- Hardcoded confidence percentages.
+- Fake AI classifications.
+- Simulated analysis progress.
+- Fake model-comparison results.
+- Made-up similarity scores.
+- Synthetic chain-of-custody events.
+- Fake audit entries.
+- Fake expert reviews.
+- Fake notifications.
+- Artificial dashboard counters.
+- Hardcoded model metrics.
+- Pretend report downloads.
+- Mock success messages.
+- Fake login and OTP flows.
+- Timers that pretend a backend process is running.
+- Frontend-only state changes presented as saved records.
+
+Remove these behaviors from the production application.
+
+**Do not replace one set of fake records with another set of invented records.**
+
+The following are acceptable:
+
+- Genuine records retrieved from the database.
+- Real analysis results produced by a configured model.
+- Legitimate computed values such as file size, duration, and SHA-256 hash.
+- Real event timestamps.
+- Clearly identified empty states.
+- Explicit “Model not configured,” “Analysis unavailable,” “No records found,” or “Awaiting expert review” states.
+- Clearly labeled test fixtures in isolated automated tests that are never presented as real forensic evidence.
+
+Never insert fake cases, users, predictions, hashes, or audit events into the production database to make the dashboard look populated.
+
+### Dashboard behavior
+
+Dashboard counters must come from authorized database queries.
+
+If no cases exist, display a polished empty state with a useful action such as “Create your first case.”
+
+If no analysis has been performed, show that no analyses are available.
+
+If a model is unavailable, show its real operational status.
+
+Never display invented totals such as “247 active cases,” fabricated verification percentages, or artificial success rates.
+
+Do not show “Verified” unless a real verification process has completed and its outcome is persisted.
+
+Every displayed status must have a real source.
+
+---
+
+# 8. REAL CASE MANAGEMENT
+
+Implement functional case management backed by persistent storage.
+
+Users with permission must be able to:
+
+- Create a case.
+- View a case.
+- Edit permitted case metadata.
+- Update the case status.
+- Close a case.
+- Search and filter cases.
+- Open the case details page.
+- View its associated evidence and reference recordings.
+- View analysis runs and their actual status.
+- View expert reviews.
+- View chain-of-custody history.
+- Generate authorized case reports.
+
+Use the case fields specified by the SRS and existing implementation. Typical fields include a unique case identifier, title, description, metadata, status, investigator, and timestamps.
+
+Validate required fields and reject invalid submissions.
+
+Prevent unauthorized edits.
+
+Persist every successful operation.
+
+Do not report that a case was saved until the backend confirms the save.
+
+Show clear loading, success, validation, and failure states.
+
+Search and filters must query actual authorized records.
+
+---
+
+# 9. REAL AUDIO EVIDENCE MANAGEMENT
+
+Implement evidence uploads according to the SRS.
+
+### Supported formats and limits
+
+- WAV.
+- MP3.
+- FLAC.
+- Maximum upload size: 50 MB per file, subject to the SRS requirements.
+
+Validate the extension, detected media format, file size, and audio readability on the server.
+
+Do not trust a filename or browser-provided MIME type alone.
+
+Use secure file storage. Generate safe server-side file identifiers, prevent path traversal, and do not expose arbitrary filesystem paths.
+
+Keep evidence files separate from public static assets.
+
+Restrict downloads and playback to authorized users.
+
+### Evidence ingestion
+
+For every uploaded evidence file:
+
+1. Validate the authenticated user's case access.
+2. Validate file type and size.
+3. Store the original evidence securely.
+4. Compute SHA-256 from the original file bytes.
+5. Persist the hash and associated metadata.
+6. Record the upload event in the audit log.
+7. Record the uploader and timestamp.
+8. Associate the file with the correct case.
+9. Display the actual upload status.
+
+Compute the hash on the backend before any audio processing.
+
+Do not replace the original evidence with a denoised, normalized, converted, or otherwise modified copy.
+
+Store derived processing artifacts separately and associate them with the original evidence.
+
+### Audio validation
+
+Validate speech presence, minimum usable speech duration, sampling quality, and audio readability.
+
+The SRS specifies a default minimum of three seconds of net speech for evidence and reference voice notes.
+
+Reject or flag unusable audio with a clear reason. Do not continue an analysis that requires speech if the input fails validation.
+
+Provide real file metadata where available, such as duration, file size, detected format, upload time, and SHA-256 hash.
+
+Do not fabricate metadata.
+
+---
+
+# 10. SHA-256 INTEGRITY AND CHAIN OF CUSTODY
+
+Evidence integrity is a core requirement, not a decorative badge.
+
+Implement a real SHA-256 integrity service.
+
+### Integrity checks
+
+- Calculate the hash when evidence is ingested.
+- Store the original hash securely with the evidence record.
+- Recalculate and compare the hash when required by the SRS, including before analysis and authorized evidence access.
+- Show the actual stored and calculated values when a check is performed.
+- Record the result, time, user or process, and evidence identifier.
+- Block analyses that require intact evidence when the integrity check fails.
+- Display a genuine integrity warning when a mismatch is detected.
+- Never silently replace the original hash with a new hash to make tampered evidence appear valid.
+
+### Chain of custody
+
+Record actual evidence-handling events, including applicable uploads, access, verification, processing, analysis, exports, and authorized changes to case associations.
+
+Each event should capture the relevant user or service identity, timestamp, action, evidence or case identifier, outcome, and other fields required by the SRS.
+
+Protect historical events from ordinary modification or deletion.
+
+Use database permissions, append-only application behavior, and appropriate integrity controls. If stronger tamper evidence is implemented, document its actual guarantees and limitations.
+
+Do not claim that a database audit log is absolutely immutable unless that property has genuinely been implemented and independently verified.
+
+A chain-of-custody screen must display real recorded events in chronological order. It must not create illustrative events to fill the timeline.
+
+---
+
+# 11. DEEPFAKE AUDIO DETECTION
+
+Implement the SRS deepfake detection pipeline using real model integration.
+
+The SRS identifies:
+
+- Audio preprocessing.
+- Noise reduction and normalization.
+- MFCC features.
+- Mel-spectrogram features.
+- LFCC features.
+- CNN detection.
+- Bi-LSTM detection.
+- Wav2Vec2-based detection.
+- Per-model classification.
+- Confidence values and inference times.
+- Explainable AI outputs.
+
+Use the architecture and trained models that are actually available in the project or can be properly integrated.
+
+### Model rules
+
+- Load genuine trained model weights.
+- Validate model files and configuration.
+- Record model name, version, and status.
+- Use real inference on the submitted audio.
+- Compute the actual inference duration.
+- Persist actual results.
+- Report model failures individually.
+- Allow independent analyses to finish when one model fails, where technically possible.
+- Display unavailable models clearly.
+
+Never create a hardcoded result such as “Fake, 98.7% confidence.”
+
+Never randomly generate a confidence score.
+
+Never classify every file as genuine or fake simply to make the application appear operational.
+
+Never present a random number as measured model accuracy.
+
+If model weights or training datasets are missing, build the appropriate integration interface, configuration checks, and truthful unavailable state. Clearly document the missing dependencies and exact steps needed to enable real inference.
+
+Do not call a placeholder classifier a trained AI model.
+
+Do not claim the SRS's target performance has been achieved without evaluation evidence.
+
+### Model comparison
+
+Display only actual model outputs.
+
+If CNN, Bi-LSTM, and Wav2Vec2 produce different results, show their real individual results and disagreement.
+
+Do not force all models to agree.
+
+Do not create a consensus verdict using fabricated scores.
+
+---
+
+# 12. SPEAKER VERIFICATION — REQUIRED SRS EXTENSION
+
+Implement the reference voice note and speaker-verification workflows described in the SRS.
+
+### Reference voice management
+
+Allow authorized investigators to:
+
+- Select the relevant case.
+- Link a reference voice recording to a named subject.
+- Upload WAV, MP3, or FLAC reference recordings up to 50 MB each.
+- Record the required genuine-sample declaration and consent or lawful-authority declaration.
+- Tag the recording condition, such as normal, ill/cold, whispering, or other.
+- Store multiple references for a subject.
+- View reference metadata and SHA-256 hashes.
+
+Reference recordings must receive the same appropriate integrity protection and audit treatment as evidence recordings.
+
+### Speaker verification pipeline
+
+Where real models are available, implement:
+
+1. Validate evidence and reference integrity.
+2. Check that both recordings contain usable speech.
+3. Apply voice activity detection.
+4. Isolate relevant speech from silence and noise.
+5. Extract speaker embeddings using the configured speaker models.
+6. Compare embeddings using a real similarity method, such as cosine similarity.
+7. Apply a documented and calibrated threshold.
+8. Produce a real result.
+9. Persist model versions, thresholds, scores, and timing.
+10. Generate appropriate explanations and visualizations.
+
+The SRS identifies speaker-embedding approaches such as ECAPA-TDNN, x-vector, and optionally WavLM-based models. Select only models that can genuinely be configured and run.
+
+The SRS requires at least two independent embedding models for speaker verification. Do not pretend that two independent models exist when only one has been configured.
+
+### Required verdicts
+
+- Match.
+- No Match.
+- Inconclusive.
+
+Show the actual similarity score, calibrated confidence where supported, speech duration analyzed, and the thresholds used.
+
+If calibration has not been performed, do not label an uncalibrated similarity score as a calibrated match probability.
+
+### Advanced comparison
+
+Implement these SRS capabilities when the necessary models and data are genuinely available:
+
+- Segment-level similarity timeline.
+- Comparison of the relevant segments.
+- Speaker diarization and multiple-speaker warnings.
+- Similarity heatmap.
+- Pitch, formant, and spectral feature comparison.
+- Agreement or disagreement between independent speaker models.
+
+If an advanced capability is not yet available, show its genuine implementation status and the required dependency. Do not draw fake timelines or heatmaps.
+
+### Important decision rule
+
+If the evidence is classified as AI-generated, the system must not issue an unconditional speaker Match verdict.
+
+The combined result must explain that the recording appears synthetic and that voice similarity does not establish that the submitted evidence contains an authentic recording of the person.
+
+Never treat a probabilistic voice match as absolute proof of identity.
+
+---
+
+# 13. VOICE CONDITION AND DISGUISE ANALYSIS
+
+Implement the requirements for distinguishing natural voice variation, illness, intentional disguise, software alteration, and AI-generated audio.
+
+The SRS identifies these classification categories:
+
+- Natural voice.
+- Natural voice with illness.
+- Human-disguised voice.
+- Software-altered voice.
+- AI-generated or deepfake voice.
+
+The system should distinguish, where the configured models support it:
+
+- Natural variation from illness-related variation.
+- Deliberate pitch or formant changes.
+- Software voice-changer effects.
+- Shrill or deep altered voices.
+- Mimicry or impersonation attempts.
+- Replay and re-recording attacks.
+- AI-generated or cloned voices.
+
+Where the models and data support it, show pitch contours, spectrograms, and formant comparisons.
+
+If disguise is suspected, support a clearly labeled “Disguise suspected” result and condition-aware speaker comparison when a validated implementation exists.
+
+Use real inference outputs and document model limitations.
+
+**Do not claim reliable illness detection, disguise detection, mimicry detection, or replay-attack detection without the required trained models and appropriate evaluation.**
+
+The SRS explicitly identifies the need for a purpose-built dataset for illness and disguise analysis. If that dataset or the corresponding models are missing, record this as a real dependency and provide a proper integration path.
+
+Do not simulate a successful analysis when these dependencies are unavailable.
+
+---
+
+# 14. EXPLAINABLE AI
+
+Implement explainability for real model outputs.
+
+The SRS specifies:
+
+- Grad-CAM heatmaps for supported CNN and Bi-LSTM models.
+- SHAP feature-contribution charts per model.
+- Understandable explanations for non-technical users.
+
+Use explanations generated from the actual inference and actual model architecture.
+
+Do not create decorative heatmaps, random highlighted regions, fabricated SHAP values, or visualizations disconnected from the model result.
+
+If a model does not support a specific explainability method, do not claim that method is available for it.
+
+Every visualization must identify what is being displayed, which model produced it, and any important interpretation limitations.
+
+Provide a plain-language explanation of the evidence supporting the result, without exaggerating what the model can prove.
+
+Distinguish measured model output from expert interpretation.
+
+---
+
+# 15. EXPERT VALIDATION AND REVIEW
+
+Implement genuine expert review workflows.
+
+A forensic expert with the correct permissions must be able to:
+
+- Open an authorized case.
+- Review its evidence and integrity status.
+- Inspect deepfake detection results.
+- Inspect speaker verification results.
+- Review voice-condition and disguise findings where available.
+- View supported explainability visualizations.
+- Add annotations and comments.
+- Mark findings as Validated, Disputed, or Needs Further Review.
+- Override eligible findings with a mandatory explanation.
+- Submit a review and persist it.
+- View previous reviews and the relevant audit history.
+
+An override must not erase the original AI result.
+
+Store the original finding, expert decision, reason, user, timestamp, and relevant model information.
+
+Log every override and review submission.
+
+Notify the relevant investigator when a review is submitted, using a real notification mechanism.
+
+Do not automatically mark findings as expert-validated.
+
+Do not display an expert's approval until the backend has actually recorded it.
+
+---
+
+# 16. PDF REPORT GENERATION
+
+Implement genuine server-side PDF report generation for authorized users.
+
+A report must be generated from actual persisted case data, not a hardcoded sample document.
+
+Include the relevant fields required by the SRS, including:
+
+- Case identifier and case metadata.
+- Authorized investigator information.
+- Evidence and reference recording identifiers.
+- Original file names where appropriate.
+- Evidence and reference SHA-256 hashes.
+- Integrity-check outcomes.
+- Relevant chain-of-custody events.
+- Audio metadata.
+- Actual analysis results.
+- Model names and versions.
+- Confidence values and inference times where actually available.
+- Speaker-verification verdict and similarity score where available.
+- Thresholds and analyzed speech duration.
+- Voice-condition and disguise findings where available.
+- Relevant explainability visualizations.
+- Expert annotations, review status, and override reasons.
+- Analysis and review timestamps.
+- Known limitations and unavailable analyses.
+- A clear statement that AI findings are probabilistic decision-support results and that expert interpretation is required for court-facing conclusions.
+
+Use professional document typography and the approved brand palette.
+
+Make the report readable, well-organized, and suitable for forensic review.
+
+Do not insert fabricated findings or made-up signatures.
+
+Do not claim that a report is legally admissible, court-certified, or guaranteed to be accepted by a court. The application may produce a professional forensic report, but legal admissibility depends on the applicable legal and procedural requirements.
+
+When a report is generated, save it securely and record the generation event in the audit log.
+
+Protect report downloads with server-side authorization.
+
+A PDF download button must return a real generated report, not an empty file, a placeholder, or a simulated success message.
+
+---
+
+# 17. AUDIT LOGGING AND FORENSIC TRACEABILITY
+
+Implement a persistent audit system for security-sensitive and forensic actions.
+
+Log applicable events such as:
+
+- Authentication and logout events.
+- Failed authentication attempts.
+- User and role changes.
+- Case creation and updates.
+- Evidence and reference uploads.
+- Integrity verification.
+- Evidence access and export.
+- Analysis requests and results.
+- Model errors.
+- Expert review and override actions.
+- Report generation and downloads.
+- Permission failures.
+- Administrative changes to model versions and thresholds.
+
+Record appropriate event identifiers, user or service identity, timestamps, target resources, outcomes, and evidence hashes where applicable.
+
+Use server-generated timestamps and validated server-side events.
+
+Protect audit history against ordinary modification and deletion. Apply appropriate access controls and document any remaining limitations.
+
+Do not seed the audit log with fake activity.
+
+Do not show an audit event until the corresponding operation has actually occurred.
+
+Provide useful filters by case, event type, user, status, and date where supported.
+
+---
+
+# 18. DATABASE AND PERSISTENCE
+
+Use a persistent database for real application records.
+
+The SRS identifies PostgreSQL as the database context. Inspect the second ZIP's existing architecture before deciding how to integrate it.
+
+The existing project may contain a different backend arrangement. Do not leave competing, disconnected backends or two databases with inconsistent data.
+
+Resolve any architecture mismatch deliberately:
+
+- Prefer an architecture that satisfies the SRS and is practical for the existing codebase.
+- If migration to the SRS's React, FastAPI, PostgreSQL, PyTorch, and Librosa context is necessary, plan and implement it carefully without discarding useful frontend work.
+- If preserving the existing backend is the safer implementation path, explicitly identify which SRS architecture differences remain and provide a concrete migration plan.
+- Never claim the application meets the SRS architecture if it does not.
+
+Use database migrations and appropriate relationships, constraints, indexes, and transactions.
+
+Persist users, roles, cases, evidence metadata, file references, hashes, analysis runs, model metadata, speaker references, expert reviews, reports, notifications, and audit events as applicable.
+
+Store audio files in secure file storage and store their metadata and references in the database. Do not place large audio files directly into ordinary relational columns unless there is a justified architectural reason.
+
+Use transactions for related operations and maintain referential integrity.
+
+Do not rely on frontend state or browser local storage as the source of truth for security-sensitive data.
+
+Data must remain available after refreshing the browser or restarting the application.
+
+Never silently replace real records with mock data.
+
+---
+
+# 19. BACKEND API AND INPUT VALIDATION
+
+Implement real, clearly structured backend endpoints for all required operations.
+
+Use appropriate validation schemas and consistent error handling.
+
+Protect every endpoint with authentication and server-side permission checks.
+
+Validate:
+
+- Request bodies.
+- URL parameters.
+- File uploads.
+- Case ownership and access.
+- Resource identifiers.
+- User permissions.
+- Model configuration.
+- Analysis state transitions.
+- Report access.
+
+Use parameterized database operations or a safe ORM.
+
+Avoid exposing internal stack traces, secret values, database credentials, private filesystem paths, or sensitive forensic content in error responses.
+
+Use appropriate status codes and predictable response formats.
+
+Do not return a success response when an operation failed.
+
+Do not leave buttons connected only to frontend state when the operation is supposed to save, upload, analyze, delete, approve, or export data.
+
+---
+
+# 20. SECURITY HARDENING
+
+Perform a practical security review and address relevant risks.
+
+Include:
+
+- Secure authentication and password hashing.
+- Server-enforced role-based access control.
+- Case-level access control.
+- Secure file storage and download authorization.
+- File type and size validation.
+- Path traversal protection.
+- SQL injection prevention.
+- Cross-site scripting prevention.
+- CSRF protection where applicable.
+- Rate limiting for sensitive endpoints.
+- Secure session expiration and revocation.
+- Environment-based secrets.
+- Safe CORS configuration.
+- Secure HTTP headers.
+- Audit logging.
+- Dependency vulnerability review.
+- Appropriate protection for sensitive personal and voice data.
+- Error handling that does not leak confidential information.
+- Safe handling of malformed and corrupted audio.
+- Prevention of unauthorized changes to evidence, reports, and audit history.
+
+Use HTTPS/TLS in deployment configuration and document the development setup separately. Never claim that transport security is active in an environment where it is not.
+
+Do not expose secrets in the frontend bundle or commit real credentials.
+
+Do not disable security checks merely to make the application run.
+
+---
+
+# 21. SIDEBAR, NAVIGATION, AND PAGE BEHAVIOR
+
+Preserve the existing sidebar and navigation structure in ZIP 2.
+
+Improve its clarity and consistency without replacing it.
+
+The sidebar must show only the features the current authenticated user is authorized to access.
+
+Organize the existing modules logically, using the current project's navigation structure as the starting point.
+
+Potential modules already represented in the project include:
+
+- Dashboard.
+- Case Management.
+- Evidence Management.
+- Chain of Custody.
+- Hash Integrity.
+- AI Analysis Pipeline.
+- Detection Results.
+- Explainable AI.
+- Model Comparison.
+- Expert Validation.
+- Legal Review.
+- Report Generation.
+- Audit Log.
+- Notifications.
+- Administration.
+- Settings.
+
+Inspect the actual ZIP 2 before changing the navigation. Preserve useful existing pages and connect each page to its real workflow.
+
+Do not display arbitrary counters or badges.
+
+A badge must be based on real data and a meaningful condition. Remove fake values such as hardcoded active counts, “Verified,” or “New” labels unless they are genuinely derived from the backend.
+
+Do not expose a role switcher that allows a user to impersonate another role.
+
+Do not show all features as accessible to every user.
+
+Keep page titles, breadcrumbs, active navigation indicators, tables, forms, status labels, and actions consistent.
+
+Use confirmation dialogs for destructive or consequential actions.
+
+---
+
+# 22. LOADING, EMPTY, ERROR, AND SUCCESS STATES
+
+Every important screen must handle real application states.
+
+Implement:
+
+- Loading states while actual requests are in progress.
+- Empty states when no records exist.
+- Validation errors for invalid input.
+- Permission-denied states.
+- Session-expired states.
+- Upload progress when supported by the upload mechanism.
+- Analysis progress tied to the real backend job or task state.
+- Model-unavailable states.
+- Analysis failure states.
+- Integrity mismatch warnings.
+- Expert-review pending states.
+- Clear success feedback after confirmed persistence.
+
+Never use a fake timer to make an analysis appear to run.
+
+Never report 100% completion unless the real job has completed.
+
+Never show “Analysis successful” when the backend returned an error or no analysis was executed.
+
+Keep the UI informative even when the database is empty or the AI models are not yet configured.
+
+---
+
+# 23. NOTIFICATIONS
+
+Implement notifications based on real events, especially:
+
+- Analysis completion.
+- Analysis failure where relevant.
+- Expert review submission.
+- Relevant case or permission changes.
+
+Persist notifications if the architecture requires notification history.
+
+Restrict notification content to authorized users.
+
+A notification must link to a real resource the recipient can access.
+
+Do not create fake unread counts or simulated notifications.
+
+---
+
+# 24. AI MODEL ADMINISTRATION
+
+Provide appropriate administrative controls for model status, version, configuration, thresholds, and measured metrics where the SRS requires them.
+
+Do not allow untrusted users to upload or activate arbitrary model files.
+
+Validate configuration changes and record relevant administrative actions.
+
+Version model configurations and thresholds so that past analyses can be interpreted using the configuration that was actually used at the time.
+
+Display the model's real state, such as configured, ready, unavailable, or failed.
+
+Show model evaluation metrics only when supported by genuine evaluation results.
+
+Never fabricate accuracy, precision, recall, F1 score, EER, or other performance measurements.
+
+Do not claim an AI model is deployed simply because its name appears in a dropdown.
+
+---
+
+# 25. TECHNICAL IMPLEMENTATION RULES
+
+Use the actual source code as the starting point.
+
+- Keep the existing React frontend and reusable components where appropriate.
+- Inspect the existing Vite configuration and build process.
+- Preserve useful routes, layouts, and application modules.
+- Use maintainable component and service boundaries.
+- Avoid unnecessary dependencies.
+- Do not rewrite functioning modules without a concrete reason.
+- Do not create duplicate authentication, database, or API implementations.
+- Do not use local mock arrays as production data sources.
+- Do not add a new library simply to create a decorative effect.
+- Do not hardcode API responses or model predictions.
+- Keep secrets in environment variables.
+- Add an `.env.example` containing placeholders only.
+- Ensure database setup and migrations are documented.
+- Keep code type-safe and fix relevant build errors.
+- Add or update tests for important functionality.
+- Do not claim a command or test succeeded unless you actually ran it and observed the result.
+
+The SRS identifies React, FastAPI, PostgreSQL, PyTorch, and Librosa as its technology context. Compare these requirements with the actual ZIP 2 stack before making architecture changes.
+
+If the existing code uses another backend, explain and resolve the difference instead of silently ignoring the SRS or casually rebuilding everything.
+
+---
+
+# 26. TESTING REQUIREMENTS
+
+After implementation, run the available checks in the actual development environment.
+
+At minimum, verify the following where the environment supports them:
+
+### Authentication tests
+
+- Signed-out users cannot access protected pages or APIs.
+- Invalid credentials are rejected.
+- Valid credentials work.
+- Logout invalidates the session.
+- A user cannot promote themselves to a privileged role.
+- An expired or revoked session cannot continue accessing protected data.
+
+### Authorization tests
+
+- Each role receives only its permitted actions.
+- Unauthorized API requests are rejected.
+- An investigator cannot access another unauthorized case.
+- A read-only legal role cannot modify evidence or findings.
+- A user cannot download an unauthorized report by changing its identifier.
+
+### Evidence tests
+
+- Supported files can be uploaded.
+- Unsupported formats are rejected.
+- Oversized files are rejected.
+- SHA-256 hashes are computed correctly.
+- Integrity mismatches are detected.
+- Hash failures block analyses that require intact evidence.
+- Uploads and integrity events are persisted.
+
+### Analysis tests
+
+- A configured model processes an eligible audio file.
+- Genuine model outputs are stored.
+- Model failures are reported honestly.
+- One model's failure does not falsely mark every other model as failed.
+- Missing model weights result in an explicit unavailable state.
+- No fake prediction is produced when inference cannot run.
+
+### Speaker-verification tests
+
+- Reference uploads are validated and hashed.
+- Consent or lawful-authority declarations are recorded.
+- Insufficient speech is handled appropriately.
+- Match, No Match, and Inconclusive outcomes follow the implemented logic.
+- The system does not issue an unconditional Match for AI-generated evidence.
+- Results and model configuration are persisted.
+
+### Reporting and audit tests
+
+- A real PDF can be generated from a real case.
+- The PDF contains the required available evidence and analysis fields.
+- Unauthorized report downloads are blocked.
+- Expert overrides require a reason.
+- Audit records are created for the relevant operations.
+- Records persist after a browser refresh and application restart.
+
+### UI and build tests
+
+- All routes render correctly.
+- Navigation reflects permissions.
+- Forms validate correctly.
+- Empty states work without seed data.
+- Loading and error states are meaningful.
+- The production build succeeds where dependencies are available.
+- Existing useful screens are not accidentally broken.
+
+Clearly distinguish tests that passed, failed, or could not be executed.
+
+Do not mark a test as passed merely because the code appears correct.
+
+---
+
+# 27. REQUIRED IMPLEMENTATION ORDER
+
+Follow this order so that the application becomes genuinely functional instead of merely receiving a visual makeover.
+
+### Phase 1 — Inspection and baseline
+
+- Inspect ZIP 1, ZIP 2, and the SRS.
+- Identify existing features and broken behavior.
+- Record the current build status.
+- Map the requirements to the source code.
+- Identify mock data, insecure authentication, frontend-only permissions, and incomplete workflows.
+
+### Phase 2 — Visual consistency
+
+- Apply the exact ZIP 1 color tokens.
+- Preserve the existing ZIP 2 layouts and component structure.
+- Improve typography, spacing, tables, forms, navigation, responsiveness, and empty states.
+- Remove fake visual counters and status badges.
+
+### Phase 3 — Security and identity
+
+- Implement proper authentication.
+- Remove default access and sample login behavior.
+- Implement role approval where applicable.
+- Enforce backend RBAC and case-level permissions.
+- Remove role switching and client-controlled privileges.
+
+### Phase 4 — Persistence and cases
+
+- Implement the persistent database layer.
+- Implement case management.
+- Implement secure file storage.
+- Connect the frontend to real APIs.
+- Remove production mock data.
+
+### Phase 5 — Evidence integrity
+
+- Implement evidence uploads.
+- Calculate and persist SHA-256 hashes.
+- Implement integrity verification.
+- Implement chain-of-custody records.
+- Secure evidence access and downloads.
+
+### Phase 6 — AI and speaker verification
+
+- Connect available trained models.
+- Implement actual deepfake detection.
+- Implement actual explainability where supported.
+- Implement reference voice management and speaker verification.
+- Implement voice-condition and disguise workflows where the necessary models exist.
+- Clearly identify unavailable model dependencies.
+
+### Phase 7 — Expert review and reports
+
+- Implement real expert validation.
+- Record overrides and reasons.
+- Generate PDFs from real persisted data.
+- Implement notifications and audit history.
+
+### Phase 8 — Verification and handover
+
+- Run builds, tests, and relevant security checks.
+- Fix discovered defects.
+- Provide configuration and setup instructions.
+- Produce an accurate implementation and limitations report.
+
+Do not stop after Phase 1 or Phase 2. Continue through the available implementation work.
+
+If the task exceeds the available execution context, finish a coherent, tested set of changes and clearly report what remains rather than falsely claiming completion.
+
+---
+
+# 28. FINAL DELIVERABLES
+
+At the end, provide:
+
+1. The enhanced second ZIP as the modified application project.
+2. A clear summary of the actual changes made.
+3. The exact approved palette implementation and confirmation that the second ZIP's existing UI structure was preserved.
+4. A list of removed mock data, fake predictions, default access, and insecure role-switching behavior.
+5. A description of the authentication and permission model.
+6. Database setup and migration instructions.
+7. An `.env.example` with placeholders, never real secrets.
+8. Backend and frontend installation instructions.
+9. Exact commands to run the application locally.
+10. Any required model-weight or dataset setup instructions.
+11. Test results showing what actually passed or failed.
+12. A list of features genuinely implemented and verified.
+13. A separate list of features blocked by missing trained models, datasets, credentials, or infrastructure.
+14. Known security and technical limitations.
+15. A requirement traceability checklist against the SRS.
+
+Preserve the original project and produce the updated version as a separate deliverable where possible.
+
+Do not claim that a downloadable ZIP, working model, database migration, successful test, or security improvement exists unless it was actually created or verified.
+
+---
+
+# 29. NON-NEGOTIABLE RULES
+
+These rules override any default tendency to generate a quick demo.
+
+**RULE 1:** Modify ZIP 2 only. ZIP 1 is the visual reference; the SRS is the requirements reference.
+
+**RULE 2:** Use the exact approved color tokens. Do not invent colors or create a different brand identity.
+
+**RULE 3:** Preserve the existing ZIP 2 UI and improve it in place. Do not rebuild the application as an unrelated dashboard.
+
+**RULE 4:** No dummy production data. No fake users, cases, hashes, confidence scores, AI predictions, model metrics, audit events, notifications, or expert approvals.
+
+**RULE 5:** No automatic sign-in, default working credentials, fake OTP, or client-controlled role switching.
+
+**RULE 6:** Enforce authentication, RBAC, and case-level access on the backend, not only in the frontend.
+
+**RULE 7:** A button must perform its real advertised action or be clearly unavailable. Do not simulate success.
+
+**RULE 8:** A missing AI model must be reported as unavailable, not replaced with a fake prediction.
+
+**RULE 9:** Evidence hashes, chain-of-custody events, model outputs, expert reviews, and PDF reports must be based on actual operations and persisted data.
+
+**RULE 10:** Do not claim legal admissibility, model accuracy, absolute evidence integrity, or production security without appropriate verification.
+
+**RULE 11:** Do not silently skip SRS requirements. Record each requirement's implementation status and its actual dependencies.
+
+**RULE 12:** Do not stop at creating a plan or redesigning the frontend. Implement, build, test, and document as much of the application as the available environment genuinely supports.
+
+**RULE 13:** If you encounter a conflict, inspect the source files and requirements, make the smallest sound change that satisfies them, and explain any unresolved limitation. Never silently substitute your own design or functionality.
+
+## FINAL OBJECTIVE
+
+Deliver a polished, professional, secure, maintainable ALFADetect forensic application based on my existing second ZIP, using the exact approved green-and-gold palette from ZIP 1, following the SRS, preserving the existing UI, and using real persistent data and genuine model outputs wherever available.
+
+The finished application must be honest about what it can and cannot do. It must be useful with an empty database, must not invent forensic evidence or results, and must not present a simulated workflow as a real forensic analysis.
+
+**Follow the supplied files and these instructions precisely. Do not invent your own colors, interface, data, or claims.**

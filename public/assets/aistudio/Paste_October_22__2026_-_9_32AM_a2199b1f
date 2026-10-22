@@ -1,0 +1,718 @@
+# ALFADetect: Deep Source-Code QA Audit, Root-Cause Repair, Forensic Integrity, and Complete Functional Frontend
+
+## YOUR ROLE
+
+Act as a principal QA engineer, senior React/TypeScript engineer, application security auditor, backend integration engineer, and digital-forensics software specialist.
+
+You have access to my existing ALFADetect source-code ZIP and its complete Software Requirements Specification (SRS).
+
+Your responsibility is to independently investigate the actual implementation, find defects I have not reported, fix their root causes, implement missing functionality, and test the modified application.
+
+**This is a source-code remediation task, not a UI redesign exercise. Do not merely describe problems or give me recommendations. Edit the existing project files, run the available tests, and report verifiable results.**
+
+The backend code already exists in the current project, but a separate backend integration may be supplied later. The AI models are still in development. Preserve and improve the existing working architecture while making the frontend genuinely functional with whatever real services are currently available.
+
+# PART 1 — FREEZE THE SCOPE AND INSPECT THE ENTIRE PROJECT
+
+Before editing anything:
+
+1. Inspect every source file, including `server.ts`, `serverDb.ts`, `src/App.tsx`, `src/types.ts`, `src/utils/rbac.ts`, `src/utils/api.ts`, `src/utils/crypto.ts`, `src/utils/pitchExtractor.ts`, `src/utils/audioDsp.ts`, `src/utils/audioPlayer.ts`, every screen, layout component, and shared component.
+2. Inspect `data/alfadetect_store.json`, `src/data/mockData.ts`, all environment configuration, package scripts, and existing tests.
+3. Inspect every API endpoint and determine what it actually does.
+4. Trace each user action from the button or form through its handler, API request, server route, persistence layer, response, and rendered state.
+5. Compare the actual code against every functional and non-functional SRS requirement.
+6. Build a dependency map showing which screens depend on shared state, which depend on the API, and which currently simulate operations.
+7. Identify every defect independently, including bugs not mentioned in this prompt.
+8. Preserve a backup or recoverable copy of the original project before significant modifications.
+
+Do not assume that an existing function works because it has a plausible name, a success notification, a green badge, or a passing superficial unit test.
+
+Do not assume that the previous developer's description of completed features is accurate.
+
+Do not replace the project with a new template, static mockup, or simplified demonstration application.
+
+# PART 2 — FIRST PRIORITY: ELIMINATE FALSE FORENSIC RESULTS
+
+I found source code that can display or generate information that looks like real forensic evidence without necessarily deriving it from real evidence or an authoritative service.
+
+Investigate and repair each of the following exact locations.
+
+## A. `server.ts` — seeded public verification record
+
+The current code contains a hard-coded public verification record with token `VRF-4471-A9B2C8E4`, report identifier `DSR-2025-4471`, an evidence filename, a fixed 97.3% verdict score, named forensic personnel, biometric values, and a digital-seal hash.
+
+Remove this record from the normal production application path.
+
+Do not substitute another fabricated report or token.
+
+Audit the public verification endpoint to ensure that:
+- Only an actual persisted report with a valid verification record can be verified.
+- The returned case, report, evidence, signature, and hash belong to the same authoritative record.
+- Invalid, unknown, revoked, expired, or tampered records return the appropriate result.
+- An invalid token never produces a success state.
+- Verification steps reflect actual completed checks.
+- Missing signature-verification or ledger infrastructure is explicitly reported as unavailable.
+- No fake biometric verification or fabricated digital signature is used.
+- Sensitive private case information is not exposed publicly.
+
+Create public verification test fixtures only inside isolated automated tests.
+
+## B. `server.ts` — randomized biometric score
+
+Investigate the `GENUINE` test mode around the biometric candidate-vector evaluation, where a score is generated using `Math.random()`.
+
+Remove any path through which a random score can be accepted as actual biometric verification.
+
+If biometric verification is not implemented using a genuine, validated input and a real verification algorithm, return an explicit not-completed or unavailable state.
+
+Do not manufacture a verification score, proof token, identity claim, or audit-success event.
+
+Review the related biometric proof issuance and forensic report-signing workflow to ensure that a proof cannot be generated from simulated success.
+
+If biometric witness authentication is outside the actual supported scope, remove misleading production claims and preserve an honest, clearly defined integration boundary.
+
+## C. `src/components/screens/HashIntegrityScreen.tsx`
+
+The inspected code uses timeouts and generated hash values to simulate MATCH and NO MATCH results. It also includes a tampering simulation.
+
+Replace simulated verification with real integrity verification.
+
+Required behavior:
+- Retrieve the authoritative original evidence hash.
+- Obtain the exact evidence bytes or use an authoritative backend verification endpoint.
+- Recompute SHA-256 from the actual original bytes when performed in the frontend.
+- Compare against the trusted stored hash.
+- Verify that the hash belongs to the selected evidence version.
+- Show MATCH only after actual verification succeeds.
+- Show MISMATCH when the recomputed hash differs from the authoritative hash.
+- Show CANNOT VERIFY when the original hash or evidence bytes are unavailable.
+- Show a separate integrity-warning state when the backend reports tampering.
+- Do not generate a different hash merely to simulate tampering.
+- Do not let users alter the original trusted hash through a frontend control.
+- Ensure verification results are associated with the correct case and evidence ID.
+- Record the actual verification event through the available audit API.
+- Never show success if persistence of a required verification event fails.
+
+If a tampering demonstration is useful for a future presentation, keep it explicitly labeled as an isolated test fixture and never use it in the normal evidence workflow.
+
+## D. `src/components/screens/ReportGenerationScreen.tsx`
+
+The screen imports `MOCK_AUDIT_LOGS`, generates visualization values, and creates a downloadable Blob.
+
+Trace the complete report-generation process and correct it.
+
+A downloaded file must contain actual data for the selected case, not just plausible headings and fabricated forensic findings.
+
+Verify that:
+- The report is generated from actual case and evidence records.
+- Model outputs originate from actual analysis responses.
+- Reference and evidence hashes are authoritative.
+- Expert review information is genuinely persisted.
+- Chain-of-custody events come from the authoritative record.
+- The report includes the required SRS fields.
+- No synthetic graph, placeholder score, mock audit event, or random visualization is included as evidence.
+- Report identifiers are unique and correctly linked to the source case.
+- Failed report generation does not show a successful download state.
+- Unauthorized users cannot generate or download restricted reports.
+- PDF generation uses a valid PDF document structure and does not simply rename another format.
+- The report states its limitations and identifies unavailable analysis results.
+
+If a backend PDF endpoint exists, use it. If it does not, implement a proper frontend-generated PDF from verified data only when permitted, or display an honest unavailable state.
+
+## E. `src/components/screens/ChainOfCustodyScreen.tsx`
+
+Remove the production dependency on `MOCK_CHAIN_OF_CUSTODY`.
+
+Load the actual provenance history associated with the selected case and evidence.
+
+Every event must have a trustworthy source and stable identifier.
+
+Show the actual event type, actor, authoritative timestamp, evidence identifier, associated hash, result, and reason where available.
+
+Never insert a completed event merely because a frontend handler was called.
+
+A pending event must remain pending until its required persistence operation succeeds.
+
+A failed event must not be presented as completed.
+
+Prevent duplicate submissions and duplicate timeline entries when requests are retried.
+
+Do not allow users to edit or delete historical events from the normal interface.
+
+Reconcile the timeline with the server after refresh and after evidence-related operations.
+
+Do not claim the log is immutable unless the actual backend architecture enforces that property.
+
+## F. `src/components/screens/ExplainableAiScreen.tsx`
+
+Remove mock SHAP data and synthetic F0 fallback values from production analysis.
+
+When the actual model attribution data or pitch measurements are missing, show a clear unavailable state.
+
+Render a chart only when its required, correctly shaped source data exists.
+
+Display the model name, version, evidence identifier, analysis run identifier, and relevant timestamp when available.
+
+Do not create a Grad-CAM heatmap, SHAP contribution, pitch contour, similarity heatmap, or acoustic measurement from arbitrary constants or generated numbers and present it as an analysis result.
+
+Distinguish genuine signal-processing measurements from model-based attribution and from explanatory illustrations.
+
+## G. `src/components/screens/ModelComparisonScreen.tsx`
+
+Remove production use of `MOCK_MODEL_RESULTS` and `RADAR_COMPARISON_DATA`.
+
+Load actual results from the model-analysis service.
+
+Represent each model independently with:
+- Model name and version.
+- Actual result or verdict.
+- Actual confidence, when supplied.
+- Actual inference duration, when supplied.
+- Processing status.
+- Error or unavailable state.
+
+Do not display model accuracy or performance statistics without verified evaluation data.
+
+Handle partial model failures without fabricating results for the failed model.
+
+## H. `src/components/screens/ExpertValidationScreen.tsx`
+
+Inspect the mock audit-log dependency, randomized visualization generation, expert review actions, biometric proof dependencies, and final signing flow.
+
+Make expert review a real persisted workflow.
+
+An authorized expert must be able to review actual findings, add annotations, choose Validated, Disputed, or Needs Further Review, and override a result only with a required reason.
+
+Persist the decision through the actual API and verify the response.
+
+The audit log must record the real reviewer, decision, reason, relevant result version, and authoritative timestamp.
+
+Never display a successful review or digital signature merely because a timer expired.
+
+If signing infrastructure is not implemented, distinguish expert review from cryptographic signing and court-ready certification.
+
+## I. `src/components/screens/AdminPanelScreen.tsx`
+
+Remove the production dependency on `MOCK_USERS`.
+
+Load actual user records from the authorized user-management API.
+
+Test creation, editing, role assignment, activation, deactivation, and other supported operations.
+
+Ensure that:
+- The current user cannot assign themselves an unauthorized role.
+- Ordinary users cannot reach administration endpoints.
+- Role updates are persisted on the server.
+- Changes are reflected after refresh.
+- Failed updates restore a truthful UI state.
+- Audit events reflect actual administrative actions.
+- Password hashes, salts, tokens, and other secrets are never exposed in user-list responses.
+
+## J. `src/components/screens/PublicVerificationScreen.tsx`
+
+Remove the simulated verification sequence that marks preliminary steps successful before the server has confirmed those checks.
+
+The interface may display a progress indicator, but each verification step must correspond to a real operation.
+
+A missing API, timeout, or failed signature check must never produce a verified report.
+
+The frontend must not claim to query an immutable ledger, validate an RSA signature, or perform biometric verification unless that capability exists and has actually been executed.
+
+Keep the public endpoint restricted to the exact information intended for public disclosure.
+
+# PART 3 — FIX APPLICATION STATE AND AUTHENTICATION
+
+Inspect `src/App.tsx`, `src/utils/api.ts`, `SignInScreen.tsx`, `RequestAccessScreen.tsx`, and all authentication-related server routes.
+
+## A. Stale-session and initial-authentication defects
+
+The current app initializes authentication from the existence of `auth_session_token` in local storage and restores a user object from `deepfake_detector_user`.
+
+A cached token and cached role are not proof of a valid session.
+
+Implement an explicit session state machine:
+- Initializing.
+- Unauthenticated.
+- Authenticated.
+- Session expired.
+- Connection unavailable.
+- Signing out.
+
+Protected screens must not be rendered as authenticated while the initial session is being validated.
+
+If session verification returns 401 or 403, clear the invalid session and protected in-memory data.
+
+If the network is unavailable, distinguish the connection failure from a confirmed invalid session. Do not silently continue into a privileged authenticated interface using a stale cached identity.
+
+Ensure account switching clears all previous-user data before loading the next account.
+
+Do not allow a cached user role to override the authoritative role returned by the server.
+
+## B. Registration and role assignment
+
+Audit the registration flow in `server.ts`, including the branch used when `SMTP_HOST` is not configured.
+
+Do not automatically activate accounts or grant requested roles merely because email verification infrastructure is absent.
+
+Implement a secure, explicit account-approval workflow appropriate to the existing project.
+
+Ordinary self-registration must not allow the user to select Administrator, System Security Administrator, or another privileged role.
+
+Role assignment must be controlled by the authorized account-provisioning process and enforced by the server.
+
+If the institution has not configured email verification, show the actual account-pending or verification-unavailable state. Do not pretend an email was sent or silently weaken activation controls.
+
+Preserve legitimate existing users and avoid destructive database changes.
+
+## C. Token and request handling
+
+Audit `src/utils/api.ts` and all direct `fetch` calls.
+
+Centralize request behavior where appropriate:
+- Authorization headers.
+- Content-type handling.
+- Safe response parsing.
+- Timeouts or cancellation where suitable.
+- Network and server error handling.
+- Session expiration.
+- Consistent error types.
+- Request deduplication where necessary.
+
+Do not assume every response is JSON.
+
+Do not retry sensitive write operations in a way that can duplicate uploads, reports, reviews, or custody events.
+
+Use idempotency support when available or implement safe retry behavior through the backend contract.
+
+Never put secrets in browser-accessible configuration.
+
+Do not log tokens, passwords, raw biometric templates, voiceprints, or sensitive audio content.
+
+# PART 4 — COMPLETE AUTHORIZATION AUDIT
+
+The SRS specifies Administrator, Investigator, and Forensic Expert, and also identifies Legal Authority as a stakeholder.
+
+The application uses:
+- Lead Forensic Analyst.
+- Forensic Examiner / Expert Witness.
+- Prosecutor / Legal Reviewer.
+- System Security Administrator.
+
+Create an explicit mapping between the existing roles and the SRS roles. Preserve legitimate account compatibility, but do not silently combine permissions.
+
+Build a permission matrix for every role, every screen, every sensitive action, and every resource type.
+
+Audit `src/utils/rbac.ts`, `Sidebar.tsx`, `App.tsx`, route handling, and all protected server endpoints.
+
+Requirements:
+- Unknown roles must be denied by default.
+- Remove privileged fallback roles from unauthenticated and unknown-user states.
+- Navigation visibility must reflect actual authorization.
+- Direct URL navigation must not bypass access control.
+- Every protected server endpoint must validate authentication, role, resource ownership, and case assignment as appropriate.
+- Users must not gain permissions by modifying local storage, URL parameters, request bodies, or React state.
+- Prevent insecure direct-object-reference vulnerabilities by checking authorization for the requested case, evidence, report, and result IDs.
+- A legal reviewer must not gain write access to original evidence.
+- An administrator must not automatically gain permission to alter forensic conclusions.
+- An investigator must not automatically be allowed to perform expert signing.
+- Expert overrides must be auditable.
+- Session expiry and role changes must invalidate or revalidate protected access.
+- Failed authorization must not leave the application in an inconsistent state.
+
+Write automated tests for both permitted and forbidden operations. Do not treat a hidden button as sufficient authorization.
+
+# PART 5 — EVIDENCE MANAGEMENT AND AUDIO LIFECYCLE
+
+Repair `EvidenceManagementScreen.tsx`, the audio-player utilities, evidence API routes, and the underlying persistence flow.
+
+The reported defect is that an uploaded voice note disappears. Find the exact cause rather than applying a superficial UI patch.
+
+Investigate React state ownership, component remounts, form reset behavior, object-URL lifecycle, file input changes, asynchronous request races, selected-case changes, and server responses.
+
+Required behavior:
+- Accept WAV, MP3, and FLAC up to the SRS limit of 50 MB per file.
+- Validate actual file contents and supported formats, not only the filename extension.
+- Compute SHA-256 from the original bytes before preprocessing.
+- Upload to the authoritative storage service.
+- Preserve the selected file until the required operation has succeeded or the user explicitly cancels.
+- Preserve previously saved evidence when a new upload fails.
+- Prevent duplicate uploads and stale-response overwrites.
+- Keep each evidence item linked to the correct case and stable evidence ID.
+- Preserve audio playback while the component is mounted and clean up object URLs only when safe.
+- Support loading, playback, pause, seek, duration, upload progress, cancellation where supported, and clear error handling.
+- Reload saved records from the backend after navigation and refresh.
+- Show a failed or pending persistence state honestly.
+- Never represent a temporary browser object URL as permanent storage.
+- Never report successful evidence ingestion before the server confirms it.
+- Verify the actual stored file hash before analysis.
+- Block analysis when integrity verification fails.
+
+Add tests for uploading multiple files, changing cases during upload, network failure, retry, browser refresh, returning to the screen, and opening previously saved evidence.
+
+# PART 6 — CHAIN OF CUSTODY, AUDIT LOGS, AND PERSISTENCE
+
+Trace every operation that changes or accesses forensic evidence.
+
+The server-side authoritative record must be the source of truth for persistent provenance.
+
+Ensure that:
+- Evidence ingestion creates a custody event after successful storage.
+- Reference-sample enrollment creates the appropriate event.
+- Hash verification records the actual verification outcome.
+- Analysis requests record the actual input evidence, result version, model versions, and threshold versions where available.
+- Expert reviews and overrides are recorded.
+- Report generation and downloads are audited where required.
+- Administrative threshold and model-version changes are versioned and logged.
+- Failed operations are distinguishable from successful operations.
+- Retried operations do not produce misleading duplicates.
+- Events remain associated with the correct case, user, evidence, and result.
+- Historical events cannot be edited through ordinary application functions.
+- The timeline is reconciled with server data after refresh.
+- Audit access follows explicit role permissions.
+
+Do not invent timestamps, user identities, IP addresses, file hashes, success states, or audit records.
+
+Inspect all server fallback values that fabricate network addresses or user details and replace them with actual request context or an explicitly unavailable value.
+
+Do not claim an immutable ledger or tamper-proof audit history when the current storage mechanism does not enforce immutability.
+
+# PART 7 — REPAIR THE SETTINGS SCREEN
+
+Audit `src/components/screens/SettingsScreen.tsx` line by line.
+
+The current inspected implementation initializes profile, 2FA, notification, theme, and retention settings locally. Its profile-save handler changes React state and displays a success message without demonstrating durable server persistence. The 2FA save handler also reports success through a local notification.
+
+Fix the underlying behavior.
+
+### Profile and password
+- Load actual account information.
+- Validate inputs.
+- Save through the authorized backend.
+- Handle server validation errors.
+- Update the UI only after confirmed success.
+- Implement real password change and reauthentication where supported.
+- Never claim a password was changed if the server did not change it.
+
+### Two-factor authentication
+- Show the actual configured status from the backend.
+- Connect to the real supported enrollment and verification flow.
+- Do not claim FIDO2, authenticator, or SMS protection is enabled when it is not.
+- If unavailable, label it clearly as not configured or unavailable.
+
+### Theme
+- Implement working Light, Dark, and System themes.
+- Apply them application-wide.
+- Persist the preference appropriately.
+- Ensure that every screen, dialog, chart, sidebar, and form respects the selected theme.
+
+### Notification preferences
+- Load and save actual preferences where supported.
+- Do not create fake notifications or fake unread counts.
+
+### Retention policies
+- Distinguish a saved preference from an enforced server-side policy.
+- Require authorized access.
+- Do not claim data was automatically purged or retained according to a policy that the backend does not enforce.
+
+Never show a successful-save banner before the operation actually succeeds.
+
+# PART 8 — PASSWORD VISIBILITY CONTROLS
+
+Audit every password field in the project.
+
+Add an accessible eye/eye-off control to applicable sign-in, registration, password-change, confirmation, and reauthentication fields.
+
+Verify that:
+- Visibility toggles correctly.
+- The field value is preserved.
+- The toggle does not submit the form.
+- Keyboard focus works.
+- The control is accessible on desktop and mobile.
+- Passwords remain hidden by default.
+- Passwords are never logged or persisted in plaintext.
+
+# PART 9 — FRONTEND AND BACKEND STATE CONSISTENCY
+
+Audit all uses of `useState`, effects, local storage, server state, and direct API calls.
+
+Identify:
+- Duplicate sources of truth.
+- State that is not refreshed after a successful write.
+- State that is updated before persistence succeeds.
+- Forms reset before completion.
+- Stale closures and asynchronous race conditions.
+- Components remounted unexpectedly.
+- Out-of-order requests.
+- Requests whose responses overwrite a newer case selection.
+- Unhandled errors.
+- Infinite loading states.
+- Incorrect optimistic updates.
+- Stale notifications and counts.
+- Broken browser back/forward behavior.
+- Protected data remaining visible after logout.
+
+For every data entity, identify its authoritative owner and synchronization rules.
+
+Persist case, evidence, reference-sample, analysis, review, report, and custody records through the appropriate backend API.
+
+Use optimistic updates only where safe, with rollback when the request fails.
+
+Never make local-only state appear to be server-confirmed data.
+
+# PART 10 — COMPLETE SPEAKER VERIFICATION
+
+Implement the real frontend workflow required by FR-21 through FR-36.
+
+The user must be able to:
+1. Select a case.
+2. Select the questioned evidence voice note.
+3. Enroll one or more reference voice notes.
+4. Link reference recordings to a named subject.
+5. Record genuine-sample labeling and consent or lawful authority.
+6. Tag recording conditions.
+7. Verify reference and evidence integrity.
+8. Initiate speaker verification through the configured analysis API.
+9. View results from two independent speaker-embedding models when available.
+10. View Match, No Match, or Inconclusive.
+11. View actual similarity scores, calibrated probabilities, speech duration, and thresholds.
+12. Review per-segment similarity timelines and diarization warnings when supplied.
+13. View actual pitch, formant, spectral, and similarity visualizations when supplied.
+14. Inspect model versions, limitations, and relevant provenance.
+15. Reopen the case and retrieve the saved results.
+
+Never invent speaker embeddings, similarity scores, match confidence, heatmaps, or speaker-diarization results.
+
+Do not run verification against evidence that failed integrity verification.
+
+If the model API is unavailable, provide the complete selection, validation, request, loading, error, and result-rendering interface with an honest unavailable state.
+
+# PART 11 — ILLNESS-AWARE VOICE MATCHING
+
+Implement the frontend requirements FR-37 through FR-40.
+
+Support condition tags and actual analysis findings for illness or natural voice variation, such as flu, cold, congestion, hoarseness, cough, and fatigue.
+
+Display condition-aware scoring only when the analysis service confirms it was performed.
+
+Do not conclude that two voices belong to different people solely because pitch or other acoustic properties changed.
+
+When illness makes a comparison unreliable, respect the model's calibrated Inconclusive or appropriately qualified result.
+
+Never fabricate illness classifications, acoustic measurements, or altered thresholds.
+
+Show the analysis status and limitations clearly when the model is unavailable.
+
+# PART 12 — VOICE DISGUISE AND DEEPFAKE ANALYSIS
+
+Implement the frontend requirements FR-41 through FR-49 and preserve the existing deepfake workflow.
+
+Support the presentation of actual results for:
+- Natural voice.
+- Natural voice with illness.
+- Human-disguised voice.
+- Software-altered voice.
+- AI-generated or cloned voice.
+- Forced deep or shrill voice.
+- Whispering and falsetto.
+- Pitch and formant shifting.
+- Voice-changer or vocoder effects.
+- Speed manipulation.
+- Mimicry and impersonation.
+- Replay or re-recording attacks.
+
+Display only actual model measurements and supported explanations.
+
+Distinguish software alteration from AI-generated voice and from speaker identity.
+
+Do not infer a person's identity, illness, or intent with certainty from acoustic changes alone.
+
+Respect the combined-verdict rules in the SRS, including FR-50 and FR-51: an AI-generated voice must not receive an unconditional Match verdict as proof of identity.
+
+If a model is unavailable, show that it has not performed the analysis.
+
+# PART 13 — AI PIPELINE, XAI, AND MODEL FAILURE HANDLING
+
+Audit `AiPipelineScreen.tsx`, `DetectionResultsScreen.tsx`, `ModelComparisonScreen.tsx`, `ExplainableAiScreen.tsx`, `VoiceDisguiseScreen.tsx`, and all related utilities.
+
+Remove hard-coded 97.3% results and any fixed confidence values used as actual analysis outcomes.
+
+Ensure CNN, Bi-LSTM, Wav2Vec2, and other supported models are represented by their actual service results.
+
+Each model must have its own processing state and error state.
+
+One model's failure must not be represented as a successful result. If the backend supports independent model execution, allow the other models to complete.
+
+Render Grad-CAM, SHAP, pitch contours, spectrograms, and comparison charts only from compatible actual data.
+
+Do not replace failed pitch extraction with generated acoustic values.
+
+Do not show benchmark accuracy as individual-prediction confidence.
+
+Do not claim that models have achieved target accuracy, EER, F1, calibration, or fairness performance without the relevant evaluation evidence.
+
+# PART 14 — CASE MANAGEMENT, REPORTS, NOTIFICATIONS, AND ADMINISTRATION
+
+Audit every button, form, filter, menu, navigation item, and state-changing operation in every screen.
+
+A control is functional only if it performs the action its label promises.
+
+### Case management
+- Create, edit, and close cases through the actual API.
+- Associate multiple evidence files and reference recordings with the correct case.
+- Search and filter by supported criteria.
+- Handle empty results and server errors.
+- Enforce assignment and role restrictions.
+- Prevent stale responses from changing the wrong case.
+
+### Expert and legal review
+- Load real analysis findings.
+- Save annotations and decisions.
+- Require override reasons.
+- Preserve the review history.
+- Enforce read-only legal permissions where appropriate.
+- Distinguish draft, reviewed, signed, and finalized reports.
+
+### Reports
+- Generate reports from verified data.
+- Enforce permissions.
+- Include required hashes, model results, expert notes, chain of custody, speaker-match findings, disguise/condition findings, thresholds, model versions, visualizations, and limitations.
+- Handle failed generation honestly.
+
+### Notifications
+- Load actual notification records.
+- Mark notifications read only through a supported operation.
+- Do not fabricate notifications when a model finishes or a review is submitted.
+
+### Administration
+- Use real users, roles, model versions, thresholds, and configuration data.
+- Validate every mutation on the server.
+- Audit changes.
+- Preserve historical forensic results and configuration versions.
+
+# PART 15 — SECURITY AND PRIVACY AUDIT
+
+Inspect both frontend and server code for:
+- Authorization bypass.
+- Insecure direct object references.
+- Self-assigned roles.
+- Unprotected API endpoints.
+- Password handling weaknesses.
+- Token leakage.
+- Sensitive logging.
+- Unsafe file handling.
+- Upload size and type bypasses.
+- Cross-user evidence exposure.
+- Public-report information leakage.
+- Unsafe HTML rendering.
+- Missing request validation.
+- Weak session invalidation.
+- Unsafe error handling.
+- Fake cryptographic claims.
+- Biometric and voiceprint exposure.
+
+Review the existing password hashing, session-token generation, token expiration, storage, and verification implementation. Confirm that the actual algorithm and session behavior satisfy the SRS rather than relying on comments or naming.
+
+Do not make the UI appear more secure by adding badges without implementing the underlying security behavior.
+
+Do not claim HTTPS, encrypted biometric storage, cryptographic signing, or immutable persistence unless the relevant infrastructure and configuration actually enforce them.
+
+# PART 16 — AUTOMATED AND END-TO-END QA
+
+Extend the existing `tests/qa-audit.test.ts` and create additional tests where needed.
+
+First inspect the current tests for false confidence: tests that verify a helper in isolation but do not verify the real application behavior.
+
+Run the actual build, TypeScript checks, existing test suite, and relevant browser-level tests supported by the project.
+
+Test at least:
+
+1. Fresh unauthenticated launch.
+2. Invalid and expired sessions.
+3. Server unavailable during session initialization.
+4. Account switching and logout.
+5. Every role against every protected screen and action.
+6. Attempted role escalation.
+7. Case ownership and assignment restrictions.
+8. Multiple evidence uploads.
+9. Unsupported, malformed, and oversized files.
+10. Network failure during upload.
+11. Retry without duplicate evidence or audit entries.
+12. Browser refresh and reopening saved evidence.
+13. Audio playback and safe object-URL cleanup.
+14. Original-byte SHA-256 verification.
+15. Hash mismatch and unavailable-original-hash handling.
+16. Actual chain-of-custody persistence.
+17. Failed custody-event persistence.
+18. Real versus unavailable analysis results.
+19. Missing and malformed XAI data.
+20. Partial model failure.
+21. Speaker verification with missing reference or consent.
+22. Inconclusive voice matching.
+23. Illness and disguise results.
+24. Combined-verdict safeguards.
+25. Expert override persistence.
+26. Report generation and public verification.
+27. Theme persistence.
+28. Password visibility controls.
+29. Profile, 2FA, notification, and retention settings.
+30. Browser back/forward navigation and direct URL access.
+
+Use test fixtures only in isolated tests. Do not seed the production-facing application with fabricated records.
+
+Do not delete or weaken failing tests to obtain a green result.
+
+Do not mark a test as passed unless it actually ran and passed.
+
+# PART 17 — REQUIREMENT TRACEABILITY
+
+Create a complete traceability matrix for FR-01 through FR-57 and NFR-01 through NFR-32.
+
+For each requirement record:
+- ID and description.
+- Relevant files and API endpoints.
+- Existing defect or missing behavior.
+- Code changes made.
+- Tests executed.
+- Actual outcome.
+- Remaining dependency.
+- Final status.
+
+Use these statuses:
+- PASS: verified by a relevant test.
+- PARTIAL: implemented but acceptance is incomplete.
+- FAIL: tested and not compliant.
+- BLOCKED: requires an unavailable backend, model, dataset, or infrastructure.
+- NOT VERIFIED: insufficient evidence to claim compliance.
+
+Do not mark a feature as complete because its screen exists.
+
+Performance, accuracy, EER, F1-score, calibration, fairness, encryption, concurrency, and availability requirements need actual measurement or infrastructure evidence. Do not invent benchmark results.
+
+# PART 18 — FINAL DELIVERABLES
+
+Do the actual work and provide:
+
+1. The modified complete project.
+2. A summary of independently discovered defects.
+3. The root cause of each major defect.
+4. A list of changed files and important code changes.
+5. Build, TypeScript, lint, and automated-test results.
+6. The requirement traceability matrix.
+7. Manual end-to-end scenarios actually executed.
+8. Remaining defects and blocked requirements.
+9. A list of verified existing backend endpoints and missing integration contracts.
+10. A list of model-dependent features that remain unavailable.
+11. Exact instructions for running the application.
+12. Environment configuration requirements, without exposing secrets.
+
+Do not return only a proposed patch or isolated code snippets when the environment supports modifying the project.
+
+If a task cannot be completed because a required service or dependency is missing, implement the appropriate integration boundary, report the blocker, and continue with the remaining work.
+
+## FINAL INSTRUCTION
+
+Prioritize truthful forensic results, evidence persistence, role security, audit accuracy, and functional behavior over visual appearance.
+
+Inspect the actual implementation, discover additional defects, fix their root causes, test the changes, and report only verifiable results.
+
+**Never make ALFADetect appear more functional than it actually is.**

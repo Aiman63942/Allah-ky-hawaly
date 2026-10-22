@@ -1,0 +1,429 @@
+ALFADetect — In-Depth SQA Audit & Google AI Studio Fix Brief
+Reviewed: 21 October 2026
+Scope: Uploaded React + TypeScript + Vite frontend, Express server.ts/serverDb.ts, and the uploaded ALFADetect SRS (with speaker verification).
+Review type: Static source-code and requirements review. I could not claim a successful runtime/browser test: this ZIP has no node_modules, and the app was not launched in a browser during this review. Treat runtime, accessibility, and responsive findings as needing verification after fixes.
+Executive SQA verdict
+Current status: NOT READY for a professional forensic demo or real case use. The project has a substantial, visually styled multi-screen shell, but important screens present hardcoded fictional findings, fake audit/custody data, synthetic progress, and local-only actions as if they were real forensic operations. Several central workflows do not call the existing backend. This directly conflicts with the request for a real frontend with no dummy/fake data.
+
+Target approach: Keep the existing green/gold visual identity if desired, but remove fabricated operational data. The UI must be attractive because of layout, typography, spacing, clear states, real audio-derived visuals when available, and excellent empty/loading/error states—not because it displays invented 98.4% scores, fake cases, fake hashes, or pretend signatures. AI-model work is in progress, so show “Model not connected / Analysis unavailable” rather than inventing results.
+Severity guide
+- P0 — Critical: Misrepresents evidence, integrity, identity, analysis, certification, or legal conclusions.
+- P1 — High: Core workflow does not persist, connect to backend, or meet an SRS requirement.
+- P2 — Medium: Usability, accessibility, reliability, security-hardening, or incomplete interaction.
+- P3 — Polish: Visual consistency and refinements.
+1. Critical findings (P0)
+P0-01 — Detection Results are hardcoded, not tied to uploaded audio
+Location: src/components/screens/DetectionResultsScreen.tsx
+The screen defines a fixed array of six suspicious anomalies with fixed time ranges, frequency bands, severities, confidence scores, and explanations. The audio playback button uses text-to-speech to narrate a finding instead of playing the actual audio segment. The values are not fetched from /api/analyze-audio or derived from an analysis result.
+
+Risk: A user can upload any file and still see a pre-written deepfake conclusion and made-up timestamps. This is unacceptable for forensic evidence and violates FR-07, FR-08, NFR-08, NFR-24, NFR-25 and the SRS principle that conclusions are probabilistic decision support.
+
+Required fix: Results page must render only the analysis record returned by the backend for the selected evidence ID. If there is no completed analysis, show a polished empty state: “No analysis available for this evidence” plus a “Run analysis” action when authorized. Do not show scores, anomalies, timestamps, model names, or conclusions unless the API returned them. Audio segment controls must seek/play the actual uploaded audio, and be disabled with a clear explanation if segment data/audio is unavailable.
+P0-02 — AI pipeline simulates completion and displays an invented verdict
+Location: src/components/screens/AiPipelineScreen.tsx
+runFullPipeline() advances through ten stages on a timer, irrespective of any server/model result. Initial state is set to stage 10. The page always displays “DEEPFAKE (SYNTHETIC), 97.3% (±0.4%), VITS / HiFi-GAN Vocoder”. These values are fabricated and the pipeline does not call /api/analyze-audio.
+
+Risk: False representation that a model ran and that evidence is synthetic. Violates FR-07/08, NFR-02, NFR-08, NFR-21, NFR-25, NFR-26 and FR-57.
+
+Required fix: Make the action call the backend using the selected case/evidence ID and show server-derived queued/running/succeeded/partial-failure/failed states. Do not fake step completion. Show each model’s real status, inference duration, result, confidence/calibration metadata, and error. While the AI API is not connected, disable the action or show “AI model service not configured”; do not display a fake verdict. Start in an explicit idle state, not 10/10 complete.
+P0-03 — Hash screen fabricates successful integrity verification
+Location: src/components/screens/HashIntegrityScreen.tsx
+Missing evidence hashes are replaced with a hardcoded 64-character-looking value. verificationResult initializes to MATCH. Recompute sets the current hash equal to the original hash without re-reading the file. “Test Tamper Detection” inserts a fixed fake hash and uses timers to simulate a result. It does not verify the selected evidence against the server-stored original bytes/hash.
+
+Risk: UI can claim evidence is intact when there is no trusted baseline or no file loaded. Violates FR-04, FR-13, FR-36, NFR-06, NFR-28.
+
+Required fix: Default to UNKNOWN / NOT VERIFIED, never MATCH. No hardcoded fallback hash. Recompute SHA-256 from actual file bytes and compare against the immutable server-stored ingestion hash through a real endpoint. If original hash/file is missing, return “Cannot verify — original baseline unavailable”. Separate any test-only tampering demo into an explicitly labelled developer/test fixture and never let it write into real cases or audit logs.
+P0-04 — Report generation downloads plain text with misleading file extensions
+Location: src/components/screens/ReportGenerationScreen.tsx
+handleDownload() creates a Blob with type: 'text/plain' but names it .pdf, .docx, or .html depending on the selected option. The report body contains fixed sample conclusions (98.4% confidence, fixed model metrics, fixed timestamps), fictional analysts/expert witnesses, a fake biometric verification percentage, and a fabricated digital signature. The date is hardcoded to 2026-08-10. biometricVerified is hardcoded true. Hash falls back to a fabricated value.
+
+Risk: A text file is masqueraded as PDF/DOCX; report contains invented forensic evidence and credentials. Extremely serious for court-facing software. Violates FR-15/18/53, NFR-25, and acceptance criteria 5–6.
+
+Required fix: Use the backend’s actual report-generation endpoint if available; otherwise build a genuine PDF only when real result records exist. Do not offer DOCX/HTML unless each is correctly generated. Report fields must come from case, evidence, analysis, speaker-verification, condition/disguise, expert-review and custody API data. Use the current server timestamp. Never claim digital signing, biometric verification, certification, expert approval, or “court-ready” status unless a real verified operation supports it. Preliminary reports must be clearly labelled preliminary and must list unavailable analyses. If there is no real result, block final report generation and explain why.
+P0-05 — Chain-of-custody page shows fabricated case history
+Location: src/components/screens/ChainOfCustodyScreen.tsx
+The page declares hardcoded events, fictional officers, timestamps, IP addresses, hashes, digital signatures, and statuses. It imports MOCK_CHAIN_OF_CUSTODY but defines its own fixed chain as well. It does not load the selected case’s /api/cases/:caseId/chain-of-custody endpoint.
+
+Risk: Presents a fake audit trail as evidence provenance. Violates FR-13, FR-15, FR-22, FR-54, NFR-15, NFR-28.
+
+Required fix: Fetch chain events for the selected case from the backend; display no event until the server returns one. Empty state must say “No custody events recorded”. Every event must show server-provided actor, UTC timestamp, action, evidence ID/hash, and verification status. Never invent IP addresses, signatures, or block hashes. A chain of custody should not be described as immutable or digitally signed unless the backend actually enforces/verifies it.
+P0-06 — XAI visuals/SHAP/spectrogram include fabricated artifacts
+Location: src/components/screens/ExplainableAiScreen.tsx; src/utils/pitchExtractor.ts
+The XAI page defines fixed suspicious regions and imports MOCK_SHAP_FEATURES. The fallback creates synthetic pitch data if there is no evidence audio or decoding fails. Code comments explicitly describe simulated spectrogram frequency bins/artificial cutoffs. This can make visualizations look like they came from an analysis when they did not.
+
+Risk: Explanations do not explain the selected model’s actual output. Violates FR-09, FR-10, FR-34, FR-49 and NFR-11/NFR-24/NFR-25.
+
+Required fix: XAI screen must use backend-generated Grad-CAM/SHAP/attention/segment artifacts, tied to the exact analysis ID, model version and evidence hash. If XAI output is not available, show a designed placeholder saying “Explanation unavailable for this run”; do not draw fake anomaly heatmaps. Client-side F0 extraction can be a separate genuine descriptive signal-processing tool, but must label it as DSP-only, must not be called model explainability, and must not silently replace failures with synthetic speech data.
+P0-07 — Evidence preview/playback speaks a fabricated narration instead of the audio
+Location: src/components/screens/EvidenceManagementScreen.tsx; src/components/screens/ReportGenerationScreen.tsx; src/components/screens/DetectionResultsScreen.tsx
+Several play buttons use speakAudioEvidence() with generated narration. The evidence upload page creates local object URLs and updates local state but does not call /api/evidence/upload. It assigns a hardcoded case ID, duration, sample rate, bit depth, channel count, and status. Recording is also handled locally and then labelled as a WAV even though MediaRecorder commonly emits a browser-specific WebM/Opus format unless encoding is actually converted.
+
+Risk: The selected “evidence” may not exist on the backend, metadata is wrong, and playback can be mistaken for original evidence. Violates FR-03/04/05/12, FR-22/24, NFR-09.
+
+Required fix: Upload the actual file to the backend and only show it as ingested after server confirmation and server hash return. Read actual metadata from a real parser/backend; if a property is unavailable, show “Unknown”, not a guessed value. The primary play button must play the uploaded original audio. Any narration/demo must be a separate, clearly labelled accessibility/demo feature. Validate WAV/MP3/FLAC, max 50 MB, actual content type, duration and speech quality. For microphone recording, preserve the real MIME type or transcode explicitly before calling it WAV. Release object URLs and microphone tracks on unmount/stop.
+P0-08 — Landing page advertises fictional demo samples/credentials
+Location: src/components/screens/LandingScreen.tsx
+Landing page includes hardcoded “DEMO_SAMPLES”, fabricated waveform/spectrogram animation, sample model conclusions, and text that refers to simulated law-enforcement/defence credentials. A demo can be useful, but it must never look like real case data or suggest production credentials.
+
+Required fix: Either remove demo results or isolate them in a “Sandbox demonstration — synthetic sample data, not real analysis” area with a visible banner on every demo screen. Never seed production cases/users. No default/demo passwords or fabricated access credentials should be advertised as real.
+P0-09 — Public report verification simulates intermediate checks
+Location: src/components/screens/PublicVerificationScreen.tsx
+The screen shows “Token structure valid” and “Record located in ledger” before the backend response is received. These are timer-based simulated checks. The backend is called only later.
+
+Risk: A user can infer the token was validated before the real verification result. “Ledger” is also misleading unless a ledger exists.
+
+Required fix: Only show a neutral “Contacting verification service…” while waiting. Every step must be driven by actual server verification output. Show verified/unverified/expired/revoked/unavailable based on the response; do not imply blockchain/ledger validation unless implemented.
+P0-10 — Expert certification and biometric flow contains simulated biometric/certification elements
+Location: src/components/screens/ExpertValidationScreen.tsx; src/components/screens/ReportGenerationScreen.tsx
+ExpertValidation contains a simulated thumb-camera canvas, random data, fake certificate ID fallback, and direct mutation of MOCK_AUDIT_LOGS. Report screen claims biometric verification is true by default. There are backend endpoints for biometrics/certification, but UI must not turn a simulation into a claim of real identity verification.
+
+Required fix: Remove simulated biometric confirmation from the production workflow. If biometric integration is not available, mark “Not configured” and do not certify identity. Certification IDs must be returned by the backend. Expert approve/dispute/needs-review actions must call the server, include a reason where required, and refresh persisted review/audit data.
+2. High-priority functional and integration issues (P1)
+P1-01 — Case creation is local-only
+Location: src/components/screens/CaseManagementScreen.tsx
+handleCreateCase() creates a random ID and only calls React setCases. It does not POST /api/cases. It also sets evidenceCount: 1 even though no evidence has been uploaded.
+
+Required fix: POST the case form to /api/cases, use the server-returned case ID/record, show validation and API errors, set evidence count to zero until evidence is attached, then refresh case list. Add edit/close/update actions that use server endpoints. Do not use Math.random() for case IDs.
+P1-02 — Evidence management does not use backend upload/list APIs
+Location: src/components/screens/EvidenceManagementScreen.tsx
+Local file selection creates a browser object URL and sets local evidence state only. No use of /api/evidence/upload or /api/evidence. “Verified” is set without server verification. MOCK_EVIDENCE is imported.
+
+Required fix: Integrate upload/list/detail endpoints. Handle progress, duplicate upload, network failure, 50 MB cap, supported format, server hash, upload confirmation, and retry. Evidence list must be scoped to selected case. Prevent analysis until server confirms integrity.
+P1-03 — Speaker verification and reference voice workflows are absent from the UI
+SRS: FR-21–36, FR-54, UC-12, UC-13
+Backend endpoints present in this project: GET/POST /api/cases/:caseId/references, GET /api/cases/:caseId/speaker-verifications, POST /api/speaker-verification/compare.
+
+Finding: No frontend screen was found that calls these routes. Existing Evidence Management is not a substitute for a dedicated reference voice note workflow.
+
+Required fix: Add a Reference Voice Samples panel within each case: subject, reference file, condition tag, genuine-sample label, consent/lawful-authority declaration, hash, duration/quality validation, upload status, multiple references per subject, and removal/deletion only where policy permits. Add “Verify Speaker” workflow that selects one evidence voice and one/more references, requires hash integrity pass, calls compare endpoint, and shows Match / No Match / Inconclusive, similarity, calibrated probability if returned, thresholds, speech duration, model agreement, segment timeline, diarization, limitations, and errors. Never invent results.
+P1-04 — Voice condition/disguise analysis not surfaced as a real workflow
+SRS: FR-37–49; backend route POST /api/voice-analysis/condition, GET case voice-disguise route.
+Finding: No UI call to these APIs was found. The current hardcoded pitch/anomaly cards are not a substitute for illness/disguise classification.
+
+Required fix: Add separate result cards for natural voice, illness indicators, human disguise, software-altered voice, AI-generated voice; display class probabilities only if returned by the model service. Include pitch contour, spectrogram/formant comparison, replay-attack/mimicry flags and confidence/limitations only when actual data exists. Keep deepfake detection distinct from speaker identity and voice disguise. Apply SRS combined-verdict decision matrix, including no unconditional speaker Match for AI-generated audio.
+P1-05 — Model comparison is entirely mock-data driven
+Location: src/components/screens/ModelComparisonScreen.tsx
+Uses MOCK_MODEL_RESULTS and RADAR_COMPARISON_DATA, with hardcoded performance charts. These can be mistaken for measured model performance.
+
+Required fix: Fetch actual deployed model registry and measured evaluation metrics from an admin/model API. If no endpoint exists, show “No model metrics connected” and document the backend contract needed. Never invent accuracy/precision/recall/F1/speed or imply a model is deployed.
+P1-06 — Dashboard mixes real endpoints with non-persisted frontend state
+Location: src/components/screens/DashboardScreen.tsx; src/App.tsx
+Dashboard calls /api/dashboard/stats and /api/audit-logs, while case creation and evidence uploads remain local. This can create contradictory counts and records. Audit fetching uses plain fetch in places instead of the shared auth client.
+
+Required fix: Use one typed API client for authenticated requests, consistent error handling, and backend source of truth. Refresh dashboard/cases/evidence after mutations. Avoid displaying stale counts as live values.
+P1-07 — Admin user list is seeded from mock users
+Location: src/components/screens/AdminPanelScreen.tsx
+internalUsers initializes from MOCK_USERS, while App separately loads real /api/users. This creates two competing user stores and can show fictional users or edits that are not persisted.
+
+Required fix: Use users prop/backend response only. Every role/status change must call the corresponding API and update only after success. Backend must enforce permissions; frontend role hiding is not security.
+P1-08 — Settings reports successful saves without persistence
+Location: src/components/screens/SettingsScreen.tsx
+Account, 2FA, notification preferences, appearance and retention handlers update local component state or show success banners, but do not persist to server. The account save changes App state but does not PATCH the profile endpoint. Several defaults are invented, e.g. phone, enabled 2FA, YubiKey name and retention periods.
+
+Required fix: Wire each control to a documented endpoint or label it “UI preference only / not connected”. Do not display “saved”, “committed”, or “applied” unless persistence succeeds. Do not prefill invented personal/security data. Add loading/error/success states and persist preferences intentionally.
+P1-09 — Audit log exports and expert/report actions mutate frontend mock arrays
+Location: src/components/screens/AuditLogScreen.tsx, ExpertValidationScreen.tsx, ReportGenerationScreen.tsx
+Some actions alter MOCK_AUDIT_LOGS in memory. Such events disappear on refresh and do not reach the server’s audit log.
+
+Required fix: All meaningful actions must be audited server-side. UI should only read the returned audit records and never mutate a client-side audit array as the source of truth. Audit export must export real filtered records and report the actual exported count.
+P1-10 — Public and legal/report states need real authorization and provenance
+SRS: FR-14/15/18/52/53 and NFR-07/23/25
+Ensure only authorized roles can see sensitive evidence, reference voiceprints, model details and full reports. Public verification should reveal only fields explicitly approved for public disclosure. A public token must not expose private evidence/audio, voice embeddings, investigator details, internal audit IPs or case notes.
+P1-11 — Auth/session flow needs resilience and consistent API usage
+Location: src/App.tsx, src/utils/api.ts, SignInScreen.tsx, RequestAccessScreen.tsx
+App initializes authenticated state from presence of a localStorage token before server validation, then validates asynchronously. On a network failure, the catch logs a warning but does not reliably clear the initial authenticated UI. Plain fetch and authFetch are mixed. The client should handle 401/403 consistently, avoid sending token to public routes, and show a session-expired/error state.
+
+Required fix: Treat session as “checking” until /api/auth/me returns success. If server cannot be reached, show an offline/service error and do not assume authenticated. Clear invalid tokens on 401, centralize API handling, and do not store secrets in client-side logs. Confirm server uses secure cookie or an explicitly justified token strategy; localStorage tokens are exposed to successful XSS.
+P1-12 — Case/evidence selection is not consistently propagated
+Location: src/App.tsx and screens
+Several pages use hardcoded fallback IDs such as DS-2024-4471 when no case is selected. Evidence upload assigns that same case ID. This can display unrelated data and make actions run against the wrong case.
+
+Required fix: Remove fallback IDs and use an explicit “Select a case/evidence first” state. Every API mutation must include the selected case/evidence identifier, and responses must be checked against that selection before rendering.
+3. SRS traceability gaps
+The SRS includes FR-01 through FR-57 and NFR-01 through NFR-32. The following areas are clearly incomplete or not evidenced by the current frontend source:
+SRS requirement area	Current source-level finding	Required frontend behavior
+FR-03, FR-04, FR-12, FR-22	Upload is local-only; metadata and “Verified” state are guessed	Real server upload, supported formats/50 MB validation, real SHA-256, case association
+FR-05, FR-06	No genuine backend preprocessing/feature extraction status is displayed	Show actual preprocessing/features state returned by pipeline; do not simulate
+FR-07, FR-08	Hardcoded detection outputs; no UI call to /api/analyze-audio	Show model-specific real verdict, confidence and inference time, or unavailable
+FR-09, FR-10	Hardcoded/synthetic Grad-CAM/SHAP views	Display only backend artifacts tied to analysis/model/version
+FR-11, FR-12	Create case local-only; evidence association is hardcoded	Persist case, edit/close, attach multiple evidence files
+FR-13, FR-54	Client-side mock audit mutations	Read actual server audit trail; log every operation server-side
+FR-14, FR-52	Review screen has mock/random biometric/certification elements	Persist validated/disputed/needs-review and overrides with reason
+FR-15, FR-18, FR-53	Export is plain text with fake .pdf/.docx extension and fictional fields	Generate real report from persisted records; accurate formats, hashes, versions, limitations
+FR-16	Search/filter appears largely local and lacks full backend date/status/investigator query integration	Server-backed filters for ID, status, date range and investigator
+FR-17, FR-56	Notifications exist in shell but mutation/refresh should be checked against backend	Persist notifications and show speaker/disguise completion
+FR-19	Model comparison uses mock metrics; admin model management not backed by model registry	Actual model/version/metrics/availability and configuration audit
+FR-20	Admin list uses MOCK_USERS	Backend user/role management
+FR-21–26	No reference-voice upload/enrollment UI calling reference endpoints	Subject-linked reference samples, consent, condition, quality, multiple references
+FR-27–36	No complete real speaker verification UI	VAD/embedding/similarity/verdict/timeline/diarization/hash gate/model agreement
+FR-37–49	No real illness/disguise workflow; static features instead	Real condition/disguise outputs, separate deepfake result, visuals, limitations
+FR-50–51	No visible evidence-level decision matrix fed by actual results	Combine real results and block unconditional identity match for AI-generated audio
+NFR-04, NFR-05, NFR-07	Frontend alone cannot prove bcrypt/TLS/authorization; must verify server/deployment	Enforce on server; frontend should show safe states and never rely on UI-only RBAC
+NFR-06, NFR-28	Hash screen defaults to fake MATCH	Real server baseline and immutable links between source, derived embedding and result
+NFR-10, NFR-11, NFR-24	Dense UI uses many very small text classes (often 10–12px); fake visuals are misleading	Readable hierarchy, accessible labels, keyboard support, plain-language explanations
+NFR-16–21	Metrics/calibration are hardcoded or absent	Show only validated measured metrics, calibration/version/threshold details; no fabricated accuracy
+NFR-22, NFR-23	Consent/deletion/privacy handling not connected end-to-end	Consent declaration, role-gated encrypted voiceprint access, retention/deletion workflow
+NFR-29	Responsive/browser compatibility not runtime-tested	Test Chrome/Edge/Firefox and mobile/tablet breakpoints
+NFR-31	No frontend queue state tied to actual job IDs evidenced	Queued/running/partial/failed/succeeded states; allow navigation while jobs run
+
+
+Important scope note: Some NFRs (bcrypt, HTTPS/TLS, encryption at rest, immutable storage, concurrency and model accuracy) are backend/deployment/model obligations, not things a frontend alone can prove. Google AI Studio should not “fake” them in UI; it should show real configuration/status only if an API exposes it.
+4. Additional workflow and usability findings (P2)
+1. Initial state is misleading: AiPipelineScreen starts at stage 10; HashIntegrityScreen starts at MATCH; report screen assumes biometric verified. Start with neutral “not run / unknown / not available” states.
+2. Evidence metadata is invented: duration 03:45, sample rate 44.1 kHz, bit depth 24-bit, stereo and case ID are assigned regardless of file. Do not assume these.
+3. Incorrect evidence lifecycle: upload marks status “Verified” without server confirmation; case creation sets evidenceCount: 1 before evidence exists.
+4. Random IDs: frontend uses Math.random() for case/evidence/certification IDs. IDs must be generated by the backend.
+5. Mock fallback in DSP: pitchExtractor.ts generates synthetic PCM when decoding fails. A decoding error should produce an error/unsupported-format state, not synthetic output presented beside real evidence.
+6. Audio recording MIME type: a MediaRecorder Blob is labelled audio/wav without an actual WAV encoder/transcoding step. Detect actual mediaRecorder.mimeType or transcode server-side.
+7. No visible server upload/progress lifecycle: need upload progress, processing state, retry, cancel where safe, duplicate handling and clear API errors.
+8. API error handling inconsistent: multiple screens use raw fetch, some use authFetch; JSON parsing/status checks are not consistent. Centralize request, auth, schema validation and error-to-message mapping.
+9. No typed API contracts evident for many screens: add request/response types for cases, evidence, analysis, reference samples, verification, voice condition/disguise, reviews, reports and audit events. Validate untrusted server responses at runtime.
+10. State becomes stale: changes in child components often only update local React state; refresh or invalidate the backend records after every successful mutation.
+11. Browser history/routing needs testing: navigation uses pushState on every screen action; navigateTo exists but many screens receive setCurrentScreen, so history behavior may diverge. Test direct links, browser back/forward, invalid screen values and login transitions.
+12. Mobile layout risk: sidebar has fixed width and sticky full-height layout; many screens use dense tables/charts and tiny text. Test at 320px, 375px, 768px, 1024px and desktop. Provide a real mobile drawer, touch-sized controls and responsive tables/cards.
+13. Accessibility: ensure every input has a programmatic label, icon-only buttons have accessible names, focus rings remain visible, dialogs trap/restore focus, status is announced to screen readers, color is not the only signal, and charts have text summaries.
+14. Loading/empty/error states: every screen needs all four states (loading, real data, empty, error). Do not silently show old data after a failed request.
+15. Confirmation and destructive actions: delete/close case, remove reference, revoke token, change role, and retention/deletion actions require clear confirmation and server response.
+16. Clipboard APIs: clipboard calls can reject outside secure contexts or without permission; catch failures and show a proper message.
+17. Object URL/resource cleanup: revoke uploaded audio object URLs when replaced/unmounted; stop microphone tracks and timers on stop/unmount.
+18. Potential claims/legal language: phrases such as “court-ready”, “self-authenticating”, “FRE 902(13)/(14)”, “immutable”, “RSA-4096”, “FIPS”, and “ledger” must not be asserted unless the real system performs the relevant operation and legal review has approved the wording.
+19. Typography/contrast: design uses a polished green/gold palette, but many labels are 10–11px. Keep the palette, increase key body text to a comfortable size, make primary actions prominent, and maintain contrast.
+20. Visual density: some screens are highly packed with forensic jargon, gauges and cards. Prioritize a clear evidence/case summary, actual status, primary action and plain-language interpretation; tuck technical detail into expandable panels.
+5. Screen-by-screen source inventory
+- LandingScreen: demo samples, animated fake waveform/spectrogram, hardcoded model story; clearly isolate/remove demo.
+- DashboardScreen: calls stats and audit endpoints, but must reconcile with backend source of truth and have empty/error states.
+- CaseManagementScreen: search/status filtering is local; create case is local-only and assigns fake ID/evidence count.
+- EvidenceManagementScreen: file hashing can happen in browser, but evidence is not persisted; fake metadata/status; generated narration instead of original audio.
+- ChainOfCustodyScreen: hardcoded custody events and hashes; not case-specific/backend-driven.
+- HashIntegrityScreen: hardcoded hash fallback and default MATCH; fake tamper toggle/recompute.
+- AiPipelineScreen: timed simulation, always-deepfake result and fabricated confidence.
+- DetectionResultsScreen: fixed anomaly list and generated narration, no analysis API result binding.
+- ModelComparisonScreen: MOCK_MODEL_RESULTS and static metrics.
+- ExplainableAiScreen: mock SHAP/static regions and synthetic pitch fallback.
+- ExpertValidationScreen: mock audit mutations, simulated thumb camera/random signal, random certificate fallback; review action must be server-backed and auditable.
+- LegalReviewScreen: verify persisted review, role access, case-specific findings and history; avoid local-only approval claims.
+- ReportGenerationScreen: fabricated report body; plain-text blob with PDF/DOCX extension; fake biometric/signature/hash fallback; simulated QR scan.
+- AuditLogScreen: ensure data comes only from API and export is real; no client-side mock mutation.
+- NotificationCentreScreen: ensure read/unread updates persist and case links resolve.
+- AdminPanelScreen: MOCK_USERS seed conflicts with users loaded by App; all changes must persist via backend.
+- SettingsScreen: success banners without persistence for several controls; fabricated defaults.
+- PublicVerificationScreen: fake intermediate progress; only actual server response can establish verification.
+- RequestAccessScreen / SignInScreen: real endpoints are called, but validate loading/error/session expiry, token handling and that any certificate data is not invented.
+- WorkflowScreen: verify that claims describe current capabilities vs planned/not connected features.
+6. Required UX and frontend architecture
+UX principles
+1. Premium, memorable, professional forensic dashboard: refined deep-forest green, warm gold accents, neutral surfaces, strong typography, subtle motion, consistent iconography, clean spacing, restrained charts, and excellent responsive behavior.
+2. Do not sacrifice truthfulness for impressive visuals. No fabricated case cards, scores, user identities, sample hashes, custody records, XAI heatmaps, model metrics, or “success” animations.
+3. Empty states should look intentional and useful, e.g. “No evidence uploaded yet” with an upload action; “AI service not connected” with a clear status; “No report can be generated until analysis and expert review are available.”
+4. Use neutral status chips: Not started, Queued, Running, Completed, Partial failure, Failed, Not configured, Inconclusive, Verified, Integrity mismatch. A successful upload is not the same as a verified hash, and an AI result is not expert validation.
+5. Every primary button must do a real action, be disabled when prerequisites are missing, display loading, show a human-readable error on failure, and reflect server success only after a successful response.
+6. Maintain the current app’s useful screen coverage and green/gold brand, but redesign overly dense panels and tiny text. Use accessible semantic forms, labels, keyboard navigation, visible focus and responsive layouts.
+Frontend implementation principles
+- Backend is the source of truth for case IDs, evidence records, SHA-256 baseline, analysis job/result, references, speaker verification, voice-condition/disguise results, reviews, reports, notifications and audit logs.
+- Create one typed API service module and consistent auth/error handling. Use server-generated IDs and UTC timestamps.
+- Never create fake fallback data in production code. Use empty arrays only as true empty data; do not replace a failed request with demo values.
+- Separate optional, explicitly labelled sandbox/demo fixtures from production screens. Do not seed fake records into normal app startup.
+- AI models are still in progress: build the UI/API integration now, with honest “not configured / unavailable” states. Do not stub results or simulate successful model runs.
+- Preserve the current backend and do not rewrite server.ts/database schema unless required and explicitly documented. First inspect the actual API routes and their request/response shape. If a needed endpoint is missing, report the required contract rather than inventing a route silently.
+- Add a data-testid or stable IDs to primary actions and key states to support Playwright/Vitest testing.
+- Add tests for happy path, empty state, invalid file, too-large file, server failure, permission denial, no selected case/evidence, hash mismatch, model failure, partial model failure, no reference sample, consent not accepted, inconclusive speaker result, deepfake blocks unconditional Match, report unavailable before prerequisites, and public token invalid/expired.
+7. Suggested API contracts to verify against the attached backend
+These are integration requirements, not a claim that every endpoint already exists. Use the exact routes/contracts already implemented where possible.
+- Auth: current session/user, login, registration/OTP, logout, re-auth; handle 401/403/expired session.
+- Cases: list/filter, create, read, update, close/delete with server-generated ID and audit trail.
+- Evidence: list by case, upload multipart audio, metadata/hash response, detail, integrity verification, access/download under authorization.
+- Analysis: submit evidence ID to analysis; return job ID; get job status; get per-model results; include model version, inference time, score/calibration info, explanation artifact links and errors.
+- Reference voice: list/upload references per case and subject; consent/lawful-authority declaration; condition label; server hash/quality validation.
+- Speaker verification: compare evidence and references; return per-model results, calibrated decision, thresholds, speech duration, segment timeline, speaker count/diarization, limitations and analysis ID.
+- Voice condition/disguise: return explicit class results for natural, illness, human disguise, software-altered, AI-generated; show evidence visualizations and confidence only if the backend provides them.
+- Expert review: validate/dispute/needs further review/override with reason; persist actor/time/version and audit record.
+- Reports: generate genuine PDF from persisted records, return download URL/blob and report verification token only after success.
+- Audit/custody: case-scoped retrieval and append-only server writes for every evidence action.
+- Notifications: list, mark read, completion notifications.
+- Admin: user/role/status and model registry/config/threshold versioning, with server-side RBAC and audit logging.
+- Public verification: return a minimal, safe public result and status without leaking private evidence, embeddings or internal logs.
+For every API call, define typed request/response interfaces and show a user-facing error when the backend response is not successful. Do not silently infer fields or make up response values.
+8. Google AI Studio prompt — copy/paste this entire brief
+You are acting as a senior SQA engineer, product designer, and React/TypeScript frontend engineer. Review the attached ALFADetect project ZIP and the attached ALFADetect SRS in full before changing code. The SRS is the requirements source of truth. Preserve the current backend and the green/gold brand unless a change is necessary. The AI models are still being developed, so the UI must be production-quality but must never invent model results.
+
+Main goal: Deliver a marvellous, eye-catching, polished, professional and responsive frontend that actually works with the backend. Do not create dummy data or fake “successful” interactions. Do not merely write a report—modify the project source files and return the complete updated project.
+Mandatory rules
+1. First inspect the complete project and all actual backend routes/database methods. Understand real API request/response shapes before connecting UI. Do not guess endpoint names, fields, database methods or response schemas.
+2. Keep the backend source intact unless a concrete integration defect requires a change. Document every required backend change separately and minimally.
+3. Remove production MOCK_* imports, fixed fictional cases/users, fabricated hashes, hardcoded verdicts/scores, generated anomaly lists, fake signatures, fake biometrics, random certificate IDs, fake custody events, synthetic progress timers and success banners that do not correspond to a real server response.
+4. Never replace unavailable AI results with invented values. Models are in progress: show a refined “AI model service not connected / analysis unavailable” state, and wire the UI to the real API contract so it will work once the model service is integrated.
+5. Do not use a fake result merely to make a chart look populated. Use meaningful empty states, skeletons during real requests, error states, and a clearly labelled sandbox only if a demo mode is intentionally retained.
+6. No fake “PDF/DOCX” downloads. Only offer a format when it is genuinely generated in that format. Never claim court-ready, digitally signed, biometric verified, immutable, or legally authenticated unless the backend actually proves it.
+7. Backend is the source of truth for cases, evidence, server-generated IDs, SHA-256 ingestion hashes, analysis jobs/results, references, speaker verification, voice condition/disguise, reviews, reports, custody, notifications, and audit logs.
+8. Do not silently change the SRS. Map every FR-01–FR-57 and NFR-01–NFR-32 to implemented, backend-dependent, or not implemented. Distinguish frontend responsibility from backend/model/deployment responsibility.
+9. Use TypeScript types for API request/response data; use a centralized API client with consistent auth, error handling, cancellation and response validation. Use the real endpoints if present. If an endpoint is missing, document the exact endpoint contract needed rather than silently faking the feature.
+10. Preserve useful existing screens but make them consistent and easy to understand. Do not delete a feature simply because it is currently disconnected; make an honest “not configured” state and integrate it where possible.
+Required SRS workflows
+- Authentication and role-based navigation; server-side authorization remains mandatory.
+- Case create/list/view/edit/close and search/filter.
+- Upload WAV/MP3/FLAC up to 50 MB; real file validation, upload progress, server SHA-256, accurate metadata, case association and error recovery.
+- Verify evidence integrity against the server-stored ingestion hash. Default must be UNKNOWN until verified; missing baseline must never show MATCH.
+- Deepfake analysis using backend analysis jobs and actual model outputs; show per-model verdict, confidence, inference time, model/version, errors and partial failure. While models are disconnected, show unavailable—not a fabricated result.
+- Real XAI only when backend Grad-CAM/SHAP/artifacts exist and are tied to the selected analysis ID and evidence hash.
+- Reference voice notes per subject/case, with condition tag, genuine sample label, recorded consent/lawful-authority declaration, SHA-256, duration/quality validation, and multiple references.
+- Speaker verification with Match / No Match / Inconclusive; show actual similarity, calibrated probability if available, thresholds, analyzed speech duration, at least two model outputs/agreement, segment timeline and diarization if returned.
+- Voice condition/disguise: natural, illness, human-disguised, software-altered, AI-generated; separate these from speaker identity and deepfake detection. Follow the SRS combined-verdict matrix. AI-generated audio must never receive an unconditional identity Match.
+- Expert review/override with required reason and server audit.
+- Genuine case PDF report with evidence/reference hashes, model versions, scores, thresholds, speaker match, condition/disguise, visualizations, expert notes, custody, limitations and report token—only when actual records exist.
+- Actual chain-of-custody, audit logs, notifications, admin users/model management, settings, and public report verification.
+UI design direction
+Create a premium forensic SaaS interface: deep forest green, restrained gold accents, bright neutral content surfaces, refined typography, consistent spacing, high-quality icons, clear data hierarchy, subtle purposeful motion, polished charts only when backed by data, professional empty/loading/error states, responsive mobile drawer and tablet/desktop layouts. Make it visually impressive but not cluttered or “AI-generated looking”. Avoid excessive tiny 10–11px text; body content should be comfortably readable. Ensure WCAG-minded contrast, visible keyboard focus, semantic labels, accessible icon buttons, keyboard-friendly dialogs, screen-reader status announcements and chart text summaries.
+Every button and control must work
+Audit every button, link, tab, form, filter, search box, upload input, download, play/pause, modal, copy action, refresh action, status toggle and navigation item across all screens. A button must either perform its advertised real action or be visibly disabled with a reason. Every request needs loading/success/failure handling; do not show success until the server confirms it. Remove or explicitly label simulated actions as sandbox-only.
+Specific known defects to fix first
+- AiPipelineScreen.tsx: timer-based fake pipeline, starts at 10/10 and hardcodes DEEPFAKE 97.3%.
+- DetectionResultsScreen.tsx: hardcoded anomaly array, fake scores/time ranges, narration instead of actual evidence segments.
+- HashIntegrityScreen.tsx: hardcoded hash fallback, initial MATCH, fake recompute/tamper test.
+- ReportGenerationScreen.tsx: text/plain blob saved with .pdf/.docx extension; fictional report details, fixed date/hash, hardcoded biometricVerified, fake QR simulation.
+- ChainOfCustodyScreen.tsx: hardcoded custody events, fake hashes/IP/signatures.
+- ExplainableAiScreen.tsx and pitchExtractor.ts: mock SHAP/regions and synthetic pitch fallback shown alongside real evidence.
+- EvidenceManagementScreen.tsx: local-only upload, hardcoded metadata/case/status, generated narration, incorrect audio/wav labelling for MediaRecorder output.
+- CaseManagementScreen.tsx: local-only case creation, random ID and evidenceCount=1 without evidence.
+- ModelComparisonScreen.tsx: mock model performance metrics.
+- AdminPanelScreen.tsx: mock users conflict with users fetched by App.
+- SettingsScreen.tsx: displays saved/success although several values are local-only.
+- ExpertValidationScreen.tsx: simulated thumb camera/random signals, random certificate fallback and mock audit mutation.
+- PublicVerificationScreen.tsx: simulated verification stages before actual server response.
+- AuditLogScreen.tsx: audit source/export must be actual server records.
+- LandingScreen.tsx: clearly isolate/remove demo sample findings and fake credentials.
+- Remove hardcoded fallback case IDs throughout; require actual selected case/evidence.
+- Use /api/cases/:caseId/references, /api/cases/:caseId/speaker-verifications, /api/speaker-verification/compare, /api/voice-analysis/condition and other actual routes only after inspecting their schemas.
+- Keep auth/session state accurate and consistent; do not assume a token means the server session is valid.
+Acceptance criteria before returning the project
+1. npm run lint / TypeScript check passes.
+2. npm run build passes.
+3. Existing test suite passes; add tests for critical flows and edge cases.
+4. Search source for MOCK_, fabricated scores/hashes, Math.random() IDs, fake verdicts, fake signature/biometric claims, setTimeout simulation, and synthetic fallbacks. Explain every remaining occurrence; no production fake result may remain.
+5. Verify all screens at mobile/tablet/desktop sizes and keyboard navigation.
+6. Verify every primary button/action manually or with Playwright tests.
+7. Test no selected case/evidence, empty backend, API 401/403/500/network failure, unsupported/oversized file, upload retry, hash mismatch, analysis unavailable, partial model failure, no reference, consent missing, inconclusive speaker result, deepfake prevents identity Match, expert override reason, report prerequisites missing, invalid/expired public token.
+8. Produce an SRS traceability matrix with every FR and NFR status and evidence of implementation.
+9. Provide a change summary, exact files changed, commands run, test results, known limitations, and any missing backend endpoint contracts.
+10. Return the complete updated source/project. Do not claim tests passed unless they were actually executed successfully.
+Do not fake completion. If a feature depends on the unfinished AI service, implement the UI and API integration boundary and show an honest unavailable state until the service is connected.
+9. SQA test checklist to run after changes
+Authentication/RBAC
+- [ ] No token: protected screens redirect to sign-in.
+- [ ] Valid token: /api/auth/me confirms session before protected content is shown.
+- [ ] Expired token / 401: clear session and prompt sign-in.
+- [ ] Each role sees permitted screens/actions only; direct URL navigation is blocked.
+- [ ] Server rejects unauthorized actions even if frontend request is manually sent.
+- [ ] Network failure during session check does not falsely authenticate.
+Cases and evidence
+- [ ] Create case persists after refresh and returns server-generated ID.
+- [ ] Empty title and invalid fields show validation.
+- [ ] Case with zero evidence shows evidence count 0.
+- [ ] Upload WAV/MP3/FLAC under 50 MB succeeds and server returns hash.
+- [ ] Unsupported/oversized/empty/corrupt file is rejected with a useful reason.
+- [ ] Uploaded evidence belongs to selected case; no hardcoded case fallback.
+- [ ] Re-upload/retry does not create inconsistent duplicate records.
+- [ ] Original audio plays; stop/pause and cleanup work.
+- [ ] Hash verification with identical bytes returns MATCH; modified bytes return mismatch; missing baseline returns cannot verify.
+AI and explainability
+- [ ] No model service: no fabricated verdict, no 100%/98% scores, no fake stage completion.
+- [ ] Analysis queued/running/completed/failed states reflect actual API.
+- [ ] Each model’s error is isolated; other model results can still render.
+- [ ] Results are tied to selected evidence and analysis ID.
+- [ ] XAI charts only appear for real returned artifacts.
+- [ ] No model metric chart shows invented accuracy/F1/precision/recall.
+- [ ] Model failure shows a visible error badge and retry option where appropriate.
+Reference voice, speaker and disguise
+- [ ] Consent/lawful-authority checkbox is required before reference use.
+- [ ] Reference note is linked to a named subject/case and has a real hash.
+- [ ] Low-duration/unusable reference is rejected/warned per API response.
+- [ ] Speaker compare cannot run until evidence integrity passes and a reference exists.
+- [ ] Match / No Match / Inconclusive maps exactly to backend result.
+- [ ] Deepfake result blocks unconditional identity Match.
+- [ ] Illness/disguise result is separate from deepfake and speaker identity.
+- [ ] Model disagreement/partial failure and limitations are clear.
+- [ ] Expert override requires a reason and creates a persisted audit event.
+Reports, custody, audit, public verification
+- [ ] No report can be marked final/certified without required analysis and expert review.
+- [ ] PDF opens as a valid PDF; DOCX only if a real DOCX is generated.
+- [ ] Report contains correct case/evidence hashes, model versions, thresholds, notes, limitations and timestamps.
+- [ ] No invented analyst, expert, biometric, digital signature, IP, custody event or hash.
+- [ ] Custody timeline comes from backend and empty case says no events.
+- [ ] Audit export contains actual server rows and selected filters.
+- [ ] Public token valid/invalid/expired outcomes come only from server response.
+- [ ] Public verification never exposes private audio, embeddings, internal IPs or private notes.
+UI/accessibility/reliability
+- [ ] All buttons/tabs/links/forms/filters have correct behavior.
+- [ ] Loading, empty, success and failure states are correct on every data-driven screen.
+- [ ] Responsive at 320, 375, 768, 1024 and 1440px widths.
+- [ ] Keyboard-only navigation, focus indicators, dialog focus, labels and accessible status announcements work.
+- [ ] Color contrast and readable font sizes are checked.
+- [ ] No uncaught console errors, React key warnings, failed API calls hidden from users, or leaked object URLs/microphone tracks.
+10. Additional audit of the latest uploaded ZIP (21 Oct 2026)
+I re-opened the latest uploaded ZIP (alfadetect-—-explainable-ai-deepfake-audio-forensic-platform(1).zip) and checked the current source inventory, package.json, the API helper, and interaction/mock/timer patterns across screen files. This confirms that the findings above apply to the latest uploaded archive, not only an earlier copy. The ZIP has 65 entries and includes a tests/qa-audit.test.ts test script, but no installed node_modules were included; no browser E2E session was executed here.
+Interaction audit coverage
+The screen source contains many click/submit/change handlers, but handler presence alone does not prove an action works. In the latest ZIP, a static scan found these important patterns:
+- AiPipelineScreen.tsx: no fetch or authFetch call, despite showing an analysis pipeline/result.
+- DetectionResultsScreen.tsx: no API call; the findings are local static data.
+- HashIntegrityScreen.tsx: four setTimeout calls, consistent with simulated verification/tamper progress.
+- PublicVerificationScreen.tsx: one API call plus three timers; intermediate checks must not be presented as verified before the API responds.
+- ReportGenerationScreen.tsx: three timers, random-value use, mock-data imports, and local object-URL download handling; inspect each action and remove simulated completion.
+- CaseManagementScreen.tsx: Math.random() use and no direct API call in the screen; create must be persisted through the parent/API, not only component state.
+- EvidenceManagementScreen.tsx: three Math.random() uses, mock-data import, two object-URL uses, and no direct API call; verify whether a parent callback persists it before showing success. Current screen must not imply server ingestion based on local selection.
+- AdminPanelScreen.tsx: mock-data import and no direct API call; all mutations must be checked against callbacks/API supplied by parent.
+- ExplainableAiScreen.tsx and ModelComparisonScreen.tsx: mock-data imports; charts must not be represented as actual analysis/benchmark metrics.
+- ExpertValidationScreen.tsx: mock-data import, three Math.random() uses, a timer and direct fetch calls; remove random biometric/certificate/custody values and verify all mutation responses.
+- ChainOfCustodyScreen.tsx: mock-data import and a timer; custody rows must come from the backend.
+- AuditLogScreen.tsx: a timer and object URL; exports should contain actual filtered server records, not a fake export animation or local sample.
+- SettingsScreen.tsx: multiple form submissions but no direct fetch; inspect parent callbacks and do not claim persistence unless the parent actually saves to the backend.
+- SignInScreen.tsx and RequestAccessScreen.tsx: direct fetches exist, but ensure consistent error handling, loading state, and session validation. authFetch is not used consistently.
+This is a static interaction-risk scan, not a claim that every control was clicked in a live browser. Google AI Studio must inspect every rendered button and its full callback path, including parent callbacks, modals, keyboard submit, disabled states, and API responses.
+Shared API client issue
+src/utils/api.ts currently adds a Bearer token and JSON content type for string bodies, then returns raw fetch() responses. It does not centralize response parsing, 401/403 handling, network error mapping, schema validation, cancellation, or consistent error messages. Use it as the basis for a typed API client, or replace it with one, while keeping actual backend routes and payloads unchanged unless a verified contract requires a change.
+Build/test checks required
+package.json declares:
+- npm run lint → tsc --noEmit
+- npm run build → Vite build plus server bundle
+- npm test → tsx tests/qa-audit.test.ts
+Run all three after code changes. Also add browser-level tests (e.g. Playwright if the project already supports it, or add the smallest maintainable test setup) because the current test script alone cannot prove every visible control, responsive layout, accessibility behavior, audio playback, or download behavior works.
+11. What is extra, redundant, or should be simplified for a more professional product
+The goal is not to remove every advanced feature. Keep advanced forensic capabilities that map to the SRS, but stop displaying them as always-active decorative widgets when the underlying system is not connected.
+Remove from production or make clearly sandbox-only
+- Fake demo samples/results mixed into real dashboard and case screens.
+- Randomly generated case/evidence/certificate IDs.
+- Decorative pipeline stages that progress without a server job.
+- Fake test-tampering flow on real evidence. If kept, place it in an isolated developer sandbox with a prominent “synthetic test only” label and no writes to real records.
+- Fake biometric camera/verification, generated signatures, mock certificate IDs and fake ledger/chain claims.
+- Repeated “security-grade / court-ready / immutable / certified” claims without implemented proof and approved wording.
+- Repeated animated waveforms/spectrograms that are not linked to selected audio or actual analysis.
+- Auto-playing or generated narration presented as the evidence recording. Keep screen-reader labels or optional UI narration separate from original-audio playback.
+Consolidate or demote to secondary navigation
+- Avoid several separate screens that repeat the same evidence details without adding a distinct user task. Prefer one Evidence Detail page with tabs: Overview, Deepfake Analysis, Explainability, Integrity, Speaker Verification, Voice Condition/Disguise, Reviews, and Custody.
+- Keep the case list and case detail as the main workflow; place model comparison and model configuration under Admin/Model Management.
+- Keep public report verification separate from internal evidence management; public view must reveal only approved public metadata.
+- Keep Workflow as a concise “How analysis works / system status” page, not another dashboard that repeats the same pipeline cards.
+- Avoid multiple export buttons for formats that are not genuinely implemented. Offer PDF only until another format has real generation and tests.
+- Move advanced ML metrics, thresholds, raw model outputs and technical signal plots into expandable “Technical details” sections. The main result should state the verdict/status, confidence only if returned and calibrated, a plain-language explanation, limitations and expert review state.
+- Avoid too many large gauges, radar charts, decorative percentages, duplicate summary cards and redundant status chips. They increase visual noise and make the app feel less trustworthy.
+Recommended main navigation
+1. Overview — real counts, recent activity, queue/service status; clear empty state.
+2. Cases — create, search/filter, open, edit/close.
+3. Evidence — case-scoped uploads and integrity state.
+4. Analysis — one evidence-centric workspace with Deepfake, XAI, Speaker, Condition/Disguise tabs.
+5. Expert Review — pending findings, validation/dispute/needs-review, reasoned override.
+6. Reports — genuine report generation and verification.
+7. Audit & Custody — real server records.
+8. Notifications — persisted read/unread state.
+9. Administration — users, model registry, thresholds, deployment status.
+10. Settings — only settings that are actually saved and supported.
+Role-based access should hide unavailable navigation items, but the server must still enforce authorization. Do not create a separate navigation item for every small feature if it can be grouped naturally under the selected case/evidence.
+Premium visual acceptance criteria
+- Clear hierarchy: one page title, one short description, one primary action, then the relevant content.
+- Keep the deep forest green + restrained gold palette, but use gold mainly for emphasis rather than every border/button.
+- Use readable body text (generally 14–16px), quiet secondary labels, consistent spacing, and fewer tiny uppercase labels.
+- Keep cards aligned, borders/shadows subtle, and charts sparse. Use charts only when they communicate actual data.
+- Use one consistent icon style and avoid icon-only controls without accessible names.
+- Provide responsive sidebar/drawer, responsive tables, and mobile-safe forms; test 320/375/768/1024/1440 px widths.
+- Add polished loading skeletons, real empty states, actionable errors, retry controls, and confirmation dialogs for destructive operations.
+- Motion should indicate real activity and respect reduced-motion preferences. Never use animation to simulate a model or security check that did not occur.
+- All controls must be keyboard accessible, have visible focus, labels, useful disabled reasons, and screen-reader announcements for async status.
+Final instruction to Google AI Studio: Perform one complete pass across all screens and controls, not piecemeal fixes. Produce a button/action inventory with columns: screen, control, expected action, callback/API route, permission, loading state, success state, failure state, and test result. Mark each as PASS, FAIL, NOT IMPLEMENTED, or BLOCKED BY BACKEND/MODEL. Never mark PASS merely because the button has an onClick handler

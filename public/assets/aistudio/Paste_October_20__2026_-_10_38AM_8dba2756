@@ -1,0 +1,745 @@
+# ALFADetect — FULL-SYSTEM QA AUDIT, DEFECT FIXING, SECURITY HARDENING, AND ACCEPTANCE TESTING
+
+You are acting as a **senior QA engineer, software test lead, security tester, full-stack developer, accessibility tester, and real customer acceptance tester** for my existing project, ALFADetect — Explainable AI-Based Deepfake Audio Detection for Digital Forensics and Legal Evidence Verification.
+
+I have provided you with the existing project ZIP. **This ZIP is your only source project.** Do not assume that you can access any other ZIP, SRS document, previous prompt, or reference project. All requirements and design instructions are stated below.
+
+Your responsibility is not merely to suggest fixes. You must inspect the existing code, identify defects, implement the fixes in the current project, and test as much as your environment allows. Do not stop after fixing the few examples I listed.
+
+## 1. NON-NEGOTIABLE PROJECT RULES
+
+1. Preserve the existing React/Vite/TypeScript application, its recognizable page layouts, navigation structure, components, and ALFADetect identity. Improve the existing implementation rather than rebuilding an unrelated application.
+2. Do not delete features just because they are difficult to fix.
+3. Do not replace real functionality with mock data, hard-coded results, fake success messages, fabricated reports, or simulated API responses.
+4. Do not claim that you tested something unless you actually executed the relevant test. Clearly distinguish tests passed, tests failed, tests blocked, and tests not run.
+5. Do not leave TODOs, fake placeholder functionality, dead buttons, or incomplete flows while describing the application as complete.
+6. Do not create a new demo login, shared password, universal PIN, hidden administrator account, or automatic-login shortcut.
+7. Do not let users assign themselves a privileged role through a frontend dropdown, local storage, a URL parameter, or client-side state.
+8. Do not remove existing features without explaining why they are unsafe or redundant and implementing an appropriate replacement.
+9. Do not change the requested color palette, introduce a new visual theme, or make the interface look like a generic AI-generated dashboard.
+10. Do not claim court admissibility, official certification, biometric verification, scientific accuracy, or compliance with a standard unless the implementation and supporting evidence justify the claim.
+11. Do not silently swallow errors. Display helpful user-facing errors and record appropriate server-side diagnostics without exposing secrets.
+12. Work through the application in stages, but continue until all feasible fixes and regression tests are completed. Do not stop after producing a report of issues.
+
+## 2. EXACT DESIGN SYSTEM — KEEP THESE COLORS
+
+Use these exact CSS variables. They are mandatory and must not be replaced by a new palette.
+
+```css
+:root {
+  --primary: #0A3D24;
+  --primary-dark: #062817;
+  --primary-light: #135A37;
+
+  --accent: #C88A2C;
+  --accent-hover: #B2751E;
+  --accent-light: #FEF3C7;
+
+  --bg: #F8FAF9;
+  --surface: #FFFFFF;
+  --ink: #112217;
+  --muted: #54665C;
+  --line: #E1EBE4;
+
+  --danger: #B91C1C;
+  --danger-bg: #FEF2F2;
+
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+
+  --success: #15803D;
+  --success-bg: #F0FDF4;
+}
+```
+
+Typography:
+
+- Body and interface text: Plus Jakarta Sans, with a sensible system sans-serif fallback.
+- Main headings: Merriweather, with Georgia as a fallback.
+- Hashes, timestamps, IDs, and technical metadata: JetBrains Mono or a monospace fallback.
+
+Use the existing CSS variables throughout the application. Replace conflicting hard-coded greens, teal shades, decorative golds, gradients, and other inconsistent colors with the existing tokens where appropriate. The specified danger, warning, and success colors may be used for their intended semantic status only.
+
+The interface must be professional, restrained, credible, readable, and suitable for a digital-forensics product. Preserve the current visual identity while correcting inconsistencies.
+
+## 3. PHASE ONE — INSPECT THE ENTIRE PROJECT
+
+Before changing code, inspect all relevant files, including:
+
+- App.tsx and the screen/navigation routing.
+- Navbar, Sidebar, shared layout, and common components.
+- Landing page, workflow, sign-in, registration, and public verification.
+- Dashboard and case management.
+- Evidence management and audio playback.
+- Chain of custody and hash integrity.
+- AI pipeline, detection results, model comparison, and Explainable AI.
+- Expert validation and speaker verification.
+- Legal review and report generation.
+- Audit logs, notifications, administration, and settings.
+- Role-based access control and all role-permission utilities.
+- Server routes, authentication/session handling, and data-storage code.
+- Every data/mock-data file and helper utility.
+- Package scripts, TypeScript configuration, Vite configuration, dependencies, environment configuration, and existing tests.
+
+Trace each user-facing button to its actual handler, API request, server-side validation, persistence operation, and final UI state.
+
+Identify duplicated logic, disconnected state, missing API integration, inconsistent data structures, unused functions, broken imports, TypeScript errors, unsafe assumptions, inaccessible controls, and routes that can be opened without authorization.
+
+Create a defect inventory with severity, affected file/component, reproduction steps, expected behaviour, actual behaviour, and the fix. Then implement the fixes. Do not deliver only this inventory.
+
+## 4. PHASE TWO — FIX THE LANDING PAGE AND SIGN-IN EXPERIENCE
+
+### 4.1 Landing page
+
+The current landing page must look like a credible forensic software product, not an artificial promotional concept.
+
+- Inspect the actual rendered design and every visual element.
+- Remove or replace any fake-looking hero image, unrealistic illustration, excessive glowing effects, decorative pseudo-data, and artificial visual treatment that undermines credibility.
+- Do not add a random stock photo or another generic AI image.
+- Prefer a clean, professional product presentation: clear typography, restrained green-and-gold accents, realistic interface previews based on actual application components, and useful explanations of the platform.
+- If you display a spectrogram or waveform, generate it from actual audio data. If that is not possible, use a neutral illustrative preview labelled “Illustrative demo — not real evidence analysis.”
+- Do not play an oscillator or generated speech while implying that it is the real evidence recording.
+- Any sample recording or sample case must be clearly labelled as synthetic/demo data.
+- Remove unsupported performance claims, percentages, “certified” badges, “court-admissible” claims, and claims of official compliance unless verified and supported.
+- Ensure the product name, purpose, features, and primary actions are immediately understandable.
+- Ensure all landing-page buttons lead to their intended destinations. In particular, distinguish “Request Access,” “Sign In,” “View Workflow,” and “Verify a Report.” Do not send a Request Access action to the public verification page.
+- Test desktop, tablet, and mobile layouts. No overlapping content, broken hero section, clipped buttons, horizontal overflow, or unreadable text.
+
+### 4.2 Sign-in page
+
+Add a clearly visible Back button or arrow at the top of the sign-in page. It must return to the previous meaningful public page, normally the landing page when there is no useful prior history.
+
+Also provide a visible route back from registration/access-request and public verification pages.
+
+The sign-in screen must have:
+
+- Clearly labelled email and password fields.
+- Password visibility control if appropriate.
+- Keyboard-accessible forms and buttons.
+- Clear validation and error messages.
+- Loading states and protection against repeated submissions.
+- A functional OTP flow only when the backend actually supports it.
+- A way to return from the OTP screen to the credential step.
+- Correct expiry, resend cooldown, attempt limits, and recovery behaviour.
+- No OTP display in an unauthenticated inbox endpoint.
+- No fake “email sent” message when actual email delivery has not happened.
+- No hard-coded credentials or role selection that misleadingly implies the user can choose their own permissions.
+- A working sign-out flow and correct handling of expired sessions.
+
+Remove the fixed terminal PIN, visible PIN disclosure, Auto-Fill PIN button, and any universal unlock code. Implement secure session re-authentication or another appropriately designed session-lock mechanism. Do not treat a hard-coded frontend PIN as authentication.
+
+### 4.3 Back navigation across the entire application
+
+This is a mandatory global improvement.
+
+Implement consistent navigation history and a reusable Back control for all applicable screens. A user must not have to depend entirely on the sidebar to return to a previous page.
+
+Requirements:
+
+- Show a visible Back control near the top of each screen, with a left-arrow icon and accessible label.
+- Maintain a meaningful navigation history or use a proper routing/history mechanism compatible with the existing application.
+- Browser Back and Forward must behave consistently.
+- Back must not unexpectedly log out the user or send them to an unrelated screen.
+- On the first authenticated page, use a sensible fallback such as the dashboard.
+- On public pages, use a sensible fallback such as the landing page.
+- On sign-in, registration, and OTP screens, Back must preserve or reset form state appropriately and safely.
+- When opening a case, evidence item, report, or related detail, Back should return to the relevant parent/list page.
+- Modals and dialogs must have their own Cancel/Close behaviour and must not accidentally trigger page navigation.
+- Restricted users must not bypass authorization by using Back, Forward, a manually entered URL, or a direct screen identifier.
+- Do not add a separate, inconsistent Back implementation to every component if a reusable shared component can safely handle it.
+
+Test every screen manually or with automated tests to confirm this works.
+
+## 5. PHASE THREE — REMOVE UNINTENDED SAMPLE USERS AND AUTOMATIC SAMPLE CASES
+
+The application currently contains seeded sample identities, case records, evidence, analysis results, and an initial Sarah Anderson record. These cause the same identity and sample forensic case to appear repeatedly.
+
+Fix this across the entire codebase.
+
+- Remove unintended hard-coded sample users and automatic sample evidence/case records from the production path.
+- Do not automatically sign in as Sarah Anderson or any other person.
+- Do not automatically select a seeded case or evidence record as though it belongs to the signed-in user.
+- Do not populate a new user's workspace with another user's identity, agency, cases, evidence, reports, notifications, or audit entries.
+- Do not silently restore mock data when the API returns an empty array.
+- Do not replace an empty API response with mock users or mock cases.
+- Do not preserve stale user details from local storage after the server says the session is invalid.
+- Clear stale client state on logout, session expiry, account suspension, and authentication failure.
+- Ensure every user sees only records they are authorized to access.
+- Ensure every new account starts with an appropriate empty state unless legitimate shared records are explicitly assigned to that account.
+- If demo data is useful for development, isolate it behind an explicit demo/test configuration and make its status obvious. Never seed demo data into a normal production account.
+
+A clean installation must not silently populate the application with fabricated forensic evidence or a predetermined verdict.
+
+## 6. PHASE FOUR — AUTHENTICATION AND SECURITY AUDIT
+
+Treat this section as a critical security task.
+
+### 6.1 Backend authorization
+
+Inspect every server route, including every GET, POST, PATCH, PUT, and DELETE endpoint.
+
+Apply actual server-side authentication middleware to every private endpoint. Apply role and record-level authorization to each operation. A React route guard or hidden button is not a security control.
+
+At minimum, protect:
+
+- User directory and administrative user operations.
+- Cases and case details.
+- Evidence upload, retrieval, and verification.
+- Audio analysis and all forensic results.
+- Reference audio and speaker verification.
+- Voice-condition/disguise analysis.
+- Chain-of-custody events.
+- Expert review, biometric operations, and certification.
+- Legal review and report creation/signing.
+- Audit logs and private notifications.
+- Settings that change security policy or application behaviour.
+
+Only genuinely public endpoints, such as a deliberately designed public report-verification endpoint, may remain public. Return only the minimal information required for public verification.
+
+Test all private routes without a token, with an invalid token, with an expired token, and with a valid token belonging to the wrong role. Unauthorized requests must fail with appropriate HTTP status codes and must not modify data.
+
+### 6.2 Sessions and identity
+
+- Establish the authenticated identity and role on the server.
+- Validate sessions on every protected request.
+- Expire sessions and invalidate them on logout.
+- Never trust a role, user ID, email, agency, or clearance supplied by the client as proof of identity.
+- Do not permit role changes by modifying React state, local storage, request bodies, or URL parameters.
+- Do not fabricate a fallback user if no registered user matches a role.
+- Do not let an administrator's frontend state alone authorize an administrative action.
+- Ensure inactive, suspended, pending, or unapproved accounts cannot access protected operations.
+- Do not allow a successful frontend state transition when server authentication has failed.
+- Handle a server outage without silently treating a stale local session as authenticated.
+
+### 6.3 Passwords, OTP, and registration
+
+- Remove fixed shared credentials and predictable password salts.
+- Use an established password-hashing approach suitable for the project's runtime, such as Argon2id or bcrypt, with appropriate parameters and unique salts.
+- Keep secrets in environment configuration. Never expose credentials, API keys, OTP values, or private configuration in frontend bundles.
+- Implement proper account registration and approval. Privileged roles must require authorized approval rather than self-assignment.
+- Ensure OTP values are single-use, expire, have limited attempts, and are rate-limited.
+- Deliver OTP through a real configured delivery provider. If one is unavailable, clearly report that delivery is not configured; do not claim an email was sent.
+- Remove the unauthenticated inbox route that returns OTP values.
+- Do not log passwords, OTP values, session tokens, or other secrets.
+- Add appropriate rate limiting, input validation, safe error responses, and protection against user/account enumeration where feasible.
+
+### 6.4 Role-based access control
+
+Implement and enforce these four existing application roles:
+
+1. **Lead Forensic Analyst** — manages authorized cases, evidence workflows, analysis requests, forensic findings, and report preparation/signing where permitted by policy.
+2. **Forensic Examiner / Expert Witness** — accesses assigned cases and evidence, performs permitted analysis, reviews findings, and submits expert assessments.
+3. **Prosecutor / Legal Reviewer** — reviews authorized findings and legal readiness, with read-only forensic evidence unless a specific permitted legal workflow requires an action.
+4. **System Security Administrator** — manages accounts, access policies, and security settings. This role must not automatically gain authority to change forensic findings or evidence conclusions.
+
+Preserve and refine the intended permissions from the existing project. Do not silently give every role access to everything.
+
+Create a permission matrix for every screen and important action. Enforce it both in the UI and on the server. A restricted user must not bypass restrictions by direct API calls.
+
+Remove any role-switching feature that allows the current user to become a different role without an actual authorized server-side account/session change.
+
+## 7. PHASE FIVE — CASE MANAGEMENT AND EVIDENCE MANAGEMENT
+
+### 7.1 Case management
+
+Test and fix the complete lifecycle:
+
+- View the correct authorized case list.
+- Search, filter, and sort cases.
+- Create a case with validated required fields.
+- Open a case and view its correct details.
+- Edit allowed fields.
+- Assign users only when the acting role is permitted.
+- Update case status and priority according to valid transitions.
+- Prevent duplicate or malformed records where appropriate.
+- Delete/archive only when authorized and legally appropriate.
+- Preserve the case after a page refresh and a new login.
+- Reflect changes consistently in dashboard counts, case lists, evidence, reports, notifications, and audit logs.
+- Handle no results, empty lists, API errors, slow responses, and concurrent updates.
+
+A button must not display a successful result if the API request fails or the database operation did not complete.
+
+### 7.2 Evidence upload
+
+Implement actual evidence-file handling, not filename-only records.
+
+- Accept only explicitly supported audio formats, such as WAV, MP3, and FLAC, and only if the implementation can process them.
+- Validate extension, actual file type/signature, file size, duration, decoding, and other necessary constraints on the server.
+- Enforce the configured maximum upload size, with a clear error when the limit is exceeded.
+- Do not trust client-supplied file size, duration, sample rate, bit depth, channels, MIME type, filename, or hash.
+- Safely handle malformed, empty, corrupted, oversized, and unsupported files.
+- Store original evidence bytes securely and associate them with the correct case and uploader.
+- Calculate SHA-256 from the actual original file bytes on the server.
+- Persist evidence metadata and storage references.
+- Display real processing states and meaningful failures.
+- Do not generate hashes from filenames and timestamps when the actual file bytes are missing.
+- Do not pretend to play the uploaded recording if no recording was uploaded or playable.
+- Use a safe audio player with real playback controls when the original audio is available.
+- Prevent path traversal, unsafe filenames, accidental overwrites, unauthorized downloads, and cross-case evidence access.
+- Ensure the UI reports exactly which file was uploaded and to which case.
+
+### 7.3 Evidence isolation
+
+A user must not be able to access evidence belonging to another unauthorized case by changing a case ID or evidence ID in a request.
+
+Test unauthorized access across different users and all four roles. Test missing IDs, invalid IDs, duplicate IDs, malformed uploads, and repeated requests.
+
+## 8. PHASE SIX — REAL HASH VERIFICATION AND CHAIN OF CUSTODY
+
+### Hash integrity
+
+- Calculate SHA-256 from the real file bytes on the server.
+- Store the original hash securely alongside the original evidence record.
+- Recompute the hash from the actual candidate file when verification is requested.
+- Compare the recomputed value against the trusted stored original hash.
+- Do not treat a client-provided hash as proof of integrity.
+- If the original evidence or trusted reference hash is missing, return “Cannot verify — trusted original unavailable.” Never return a successful match by default.
+- Keep tampering simulations isolated to explicit test/demo mode.
+- Make the distinction between a test simulation and a real forensic integrity check unmistakable.
+- Do not modify or replace original evidence during verification.
+- Record the verifier, timestamp, evidence identifier, expected hash, computed hash, outcome, and relevant action in a properly authorized audit record.
+- Test identical files, altered bytes, renamed files, corrupted files, zero-byte files, unsupported files, missing originals, and incorrect reference hashes.
+
+### Chain of custody
+
+- Create real, append-only events for evidence ingestion, hash verification, analysis, access, transfer, review, signing, report generation, and other relevant custody events.
+- Use the authenticated actor identity from the server session.
+- Use server-generated timestamps and trusted metadata.
+- Link each event to the correct case and evidence record.
+- Preserve previous events and prevent ordinary users from editing or deleting custody history.
+- Do not use fabricated signatures, invented block hashes, fake IP addresses, or random values presented as genuine digital signatures.
+- Do not call a ledger “immutable” unless its implementation supports that property.
+- If a real digital-signature mechanism is not configured, label the signature feature as unavailable rather than inventing a signature.
+- Test the complete event sequence and verify that unauthorized changes are rejected.
+
+## 9. PHASE SEVEN — DEEPFAKE AUDIO DETECTION PIPELINE
+
+This is a critical part of ALFADetect.
+
+The current code returns hard-coded detection findings, scores, regions, and confidence values. Replace this behaviour with a real, configured analysis pipeline or explicitly report that the required model is unavailable.
+
+Do not invent model outputs to make the screen look complete.
+
+### Required behaviour
+
+1. Confirm that the user is authorized to analyze the selected evidence.
+2. Confirm that the evidence exists and passes integrity checks.
+3. Read and decode the actual uploaded audio.
+4. Validate the supported audio format and duration.
+5. Preprocess the audio using documented parameters.
+6. Extract only features that the implemented processing code genuinely computes.
+7. Call the configured deepfake detection model or models.
+8. Validate the model output and its version.
+9. Store the real results and relevant processing metadata.
+10. Show the actual result, processing status, limitations, and explanation.
+11. Record the operation in the audit log.
+12. Prevent the report from treating a failed or unavailable model as a successful analysis.
+
+If CNN, BiLSTM, Wav2Vec2, an ensemble model, or another model is not installed or configured, do not fabricate a prediction for it. Display “Model unavailable/not configured” and explain what must be configured.
+
+Gemini or another general-purpose language model must not be treated as an audio deepfake detector merely because it can generate an explanation from metadata.
+
+### Results and confidence
+
+- Store the actual model output, model name/version, analysis timestamp, processing status, and relevant configuration.
+- Validate the ranges and meaning of model scores.
+- Do not fabricate a confidence interval, accuracy, precision, recall, F1 score, inference time, threat score, or synthetic probability.
+- Do not present benchmark accuracy as the confidence for an individual file.
+- Do not force every file to be classified as a deepfake.
+- Support the real outcomes available to the model, including authentic, deepfake, inconclusive, and analysis failure where appropriate.
+- If the model does not support a metric, show “Not available.”
+- Include appropriate limitations and explain that automated output requires human interpretation and validation for legal use.
+- Test authentic, synthetic, ambiguous, corrupted, silent, extremely short, and unsupported audio when test fixtures are available. Do not invent a test result when no suitable test file or model is available.
+
+## 10. PHASE EIGHT — EXPLAINABLE AI, MODEL COMPARISON, AND SPEAKER VERIFICATION
+
+### Explainable AI
+
+- Remove fabricated SHAP features and prewritten anomaly claims from real-analysis views.
+- Generate explanations only from the actual model and actual evidence processed.
+- If Grad-CAM, SHAP, spectrogram analysis, pitch analysis, or another explanation method is unavailable, state that explicitly.
+- Clearly distinguish actual evidence analysis from illustrative visualization.
+- Never show fabricated time ranges, frequency ranges, heatmaps, or attribution scores as real evidence findings.
+- If a feature is calculated locally for exploration but is not connected to the detection model, label it as a separate acoustic measurement rather than a model explanation.
+- Make the selected case and evidence identifier visible.
+- Prevent results from one case from leaking into another case's XAI page.
+
+### Model comparison
+
+- Compare only models that actually ran on the same eligible evidence.
+- Display model versions, available metrics, runtime, and failures honestly.
+- Handle missing model results without inserting made-up values.
+- Do not show a hard-coded “best model” or predetermined ranking.
+- Make the basis of any recommendation explicit.
+
+### Speaker verification
+
+- Use real reference audio and an implemented speaker-verification model.
+- Associate reference samples with the correct case, subject, uploader, consent/legal basis, and metadata.
+- Do not treat a deterministic synthetic vector as a genuine speaker embedding.
+- Do not generate a similarity score if the model did not compute it.
+- Distinguish speaker identity similarity from deepfake detection. They are separate questions.
+- If no real verification model is configured, display a clear unavailable state.
+- Prevent unauthorized access to reference recordings and sensitive speaker data.
+
+### Voice condition/disguise analysis
+
+- Only display findings supported by an implemented and configured analysis method.
+- Do not infer a person's health, intent, or identity from unsupported measurements.
+- Label missing functionality and uncertainty accurately.
+- Never fabricate results to populate a chart.
+
+## 11. PHASE NINE — EXPERT REVIEW AND BIOMETRICS
+
+Audit expert registration, reviewer assignment, certification, approval, rejection, digital signatures, and biometric flows.
+
+- Remove any fabricated fingerprint capture or camera-biometric claim.
+- Do not label generated vectors as genuine fingerprint minutiae.
+- Do not claim FIPS, WebAuthn, or other biometric/security compliance unless the actual implementation and deployment support it.
+- Use an appropriate real authentication/biometric mechanism only if the platform and environment support it.
+- If hardware or provider configuration is absent, mark that step unavailable and do not pretend verification succeeded.
+- Require authorized roles for expert review and certification.
+- Validate expert qualifications and approval status according to the implemented policy.
+- Persist reviews and ensure they are associated with the correct case and expert.
+- Record actual review actions, checklists, timestamps, and signature status.
+- Prevent a client from submitting a fabricated expert identity or certification status.
+- Do not permit unauthorized users to approve their own review if separation of duties is required.
+- Ensure that approval, rejection, dispute, and withdrawal states are handled correctly.
+
+## 12. PHASE TEN — LEGAL REVIEW AND REPORT GENERATION
+
+### Legal review
+
+- Connect the legal-review screen to persisted case data and real review records.
+- Do not show a checklist as complete simply because sample data says it is complete.
+- Allow authorized reviewers to record and update permitted review items.
+- Validate state transitions and required evidence.
+- Keep legal-review history and audit records.
+- Prevent unauthorized roles from changing legal approval status.
+- Clearly identify incomplete requirements.
+
+### Forensic reports
+
+Generate a PDF report from actual, persisted case data, evidence metadata, hash verification, actual model output, applicable explanations, chain-of-custody records, expert review, legal review, and signature status.
+
+Requirements:
+
+- Include a unique report identifier and generation timestamp.
+- Identify the case and evidence unambiguously.
+- Include the original evidence SHA-256 and actual verification status.
+- Identify the model/version and actual result, if available.
+- State analysis limitations, model availability, uncertainty, and missing evidence.
+- Include custody events and review/signature status as applicable.
+- Do not invent analyst names, expert signatures, certification IDs, scores, legal approval, QR tokens, or verification seals.
+- Never describe a report as signed or certified unless a valid signing/verification mechanism has actually completed.
+- Generate a real downloadable PDF, not a fake download button.
+- Ensure the PDF matches the case currently selected.
+- Prevent data from another case from leaking into the report.
+- Ensure report generation fails clearly when mandatory information is missing.
+- Verify that generated files open correctly and contain the correct data.
+
+### Public report verification
+
+- Keep the public verification feature limited to the data necessary to verify a report.
+- Use a real token generated through an authorized report-issuance process.
+- Do not ship a hard-coded public verification record that looks like real evidence.
+- Handle valid, unknown, revoked, expired if applicable, and tampered tokens correctly.
+- Do not disclose private case evidence or confidential user information.
+- Do not claim a report is valid solely because a token exists; validate the stored report status and cryptographic proof where implemented.
+
+## 13. PHASE ELEVEN — ADMIN PANEL, AUDIT LOGS, NOTIFICATIONS, AND SETTINGS
+
+### Administration panel
+
+- Replace mock user lists with actual authorized server data.
+- Persist user creation, status changes, role assignment, and permitted administrative actions.
+- Require server-side administrator authorization for every privileged operation.
+- Prevent an administrator from elevating their own permissions through an unapproved path.
+- Handle pending, active, suspended, and inactive accounts consistently.
+- Ensure changes are visible after refresh and are reflected in the next authenticated session.
+- Do not use a frontend-only status toggle as proof that an account has been disabled on the server.
+
+### Audit logs
+
+- Use actual events from the server and persisted storage.
+- Record the authenticated actor, action, target, timestamp, outcome, and relevant context.
+- Record security failures where appropriate without storing passwords, OTPs, or tokens.
+- Do not manufacture successful activity or use hard-coded identities and IP addresses as real audit data.
+- Do not allow ordinary users to edit or delete audit history.
+- Apply role restrictions to viewing logs.
+- Test search, filters, sorting, pagination if present, empty state, and error handling.
+
+### Notifications
+
+- Use real persisted notifications associated with the appropriate user or authorized case.
+- Ensure unread counts match actual unread notifications.
+- Make mark-read, mark-all-read if supported, and case navigation work correctly.
+- Persist notification state across refreshes.
+- Do not populate the notification centre with fake events on every login.
+- Ensure users cannot read other users' private notifications.
+
+### Settings
+
+- Ensure every setting has a defined effect, correct validation, and appropriate authorization.
+- Remove decorative switches that do not change real behaviour.
+- Explain unavailable integrations and unconfigured settings.
+- Protect sensitive settings and avoid exposing secrets.
+- Ensure Cancel, Save, Reset, and confirmation dialogs behave consistently.
+- Persist changes only after successful validation and server confirmation.
+
+## 14. PHASE TWELVE — UI AND UX TESTING OF EVERY SCREEN
+
+Inspect and test every screen in the existing application:
+
+1. Landing page.
+2. Workflow/features tour.
+3. Sign-in.
+4. Registration/access request.
+5. Dashboard.
+6. Case management.
+7. Evidence management.
+8. Chain of custody.
+9. Hash integrity.
+10. AI analysis pipeline.
+11. Detection results.
+12. Model comparison.
+13. Explainable AI.
+14. Expert validation.
+15. Legal review.
+16. Forensic report generation.
+17. Public report verification.
+18. Audit log.
+19. Notification centre.
+20. Administration panel.
+21. Settings.
+22. Every modal, dropdown, tab, filter, file picker, form, and detail view.
+
+For each screen check:
+
+- Correct title, labels, field values, data source, and role permissions.
+- All buttons, links, icons, tabs, and navigation controls.
+- Back, Forward, Cancel, Close, Save, Submit, Retry, Refresh, and Sign Out behaviour where applicable.
+- Form validation and helpful error messages.
+- Loading indicators and prevention of duplicate requests.
+- Empty states and no-results states.
+- Success and failure feedback.
+- API errors, server disconnection, and slow requests.
+- Missing or malformed data.
+- Stale data after switching cases or accounts.
+- Correct state after refreshing or reopening a page.
+- No accidental loss of unsaved changes.
+- No incorrect sample names or data appearing in a real user's workspace.
+- No clipped content, overlapping cards, broken scrolling, horizontal overflow, or tiny unreadable labels.
+- Consistent spacing, typography, border styles, icons, focus states, and use of the exact palette.
+- Accessible labels, keyboard navigation, visible focus, contrast, and screen-reader-friendly controls.
+- Responsive layout at approximately 320px, 375px, 768px, 1024px, 1366px, and 1920px viewport widths.
+
+Every visible control must work. If a feature cannot be implemented because a required service, model, email provider, biometric device, or other dependency is unavailable, show a clear unavailable state instead of pretending it worked.
+
+## 15. PHASE THIRTEEN — REQUIRED ROLE-BY-ROLE ACCEPTANCE TESTING
+
+Create and execute a role-based test matrix for each of the four roles.
+
+### A. Lead Forensic Analyst
+
+Test the authorized workflow from case creation through evidence upload, hash verification, analysis, results, explanation, chain of custody, expert review, and report generation/signing where permitted.
+
+Test unauthorized administration or unrelated cross-case access. Verify that all successful actions persist and generate accurate audit events.
+
+### B. Forensic Examiner / Expert Witness
+
+Test assigned-case access, permitted evidence access, analysis, viewing explanations, and submitting expert assessments.
+
+Attempt to create or delete cases, manage users, change security settings, approve restricted actions, and access unassigned evidence. Unauthorized operations must fail on the server.
+
+### C. Prosecutor / Legal Reviewer
+
+Test authorized case review, result viewing, legal checklist updates, and report review.
+
+Attempt to upload or modify original evidence, execute restricted forensic operations, change model results, and administer users. Enforce the defined read-only and legal-review permissions.
+
+### D. System Security Administrator
+
+Test authorized account management, account status changes, role provisioning, audit log access, and security configuration.
+
+Attempt to modify original evidence, change a detection verdict, or approve forensic findings without the required authority. Security administration must not silently confer forensic authority.
+
+For each role, test:
+
+- Valid login and logout.
+- Invalid password.
+- Invalid and expired OTP.
+- Suspended/inactive account.
+- Missing, invalid, and expired session.
+- Direct URL access to every restricted screen.
+- Direct API calls to every restricted operation.
+- Changing role fields or IDs in the browser/client.
+- Cross-user and cross-case record access.
+- Browser Back/Forward and refresh.
+- Session expiry and attempted reuse of a stale session.
+- Empty workspace and a workspace with authorized records.
+- Correct navigation, errors, and access-denied messages.
+
+Never test role permissions only by clicking sidebar items. Use actual HTTP requests against the server where possible.
+
+## 16. PHASE FOURTEEN — REGRESSION, NEGATIVE, AND EDGE-CASE TESTING
+
+Execute these tests wherever the necessary environment and test data are available:
+
+### Authentication and authorization
+
+- Unauthenticated request to every private API route.
+- Expired and invalid session token.
+- Correct session with wrong role.
+- Suspended user.
+- Tampered user/role fields.
+- Repeated failed login and OTP attempts.
+- OTP replay, expiry, resend, and rate-limit behaviour.
+- Logout followed by reuse of the old session token.
+- Direct navigation to restricted screens.
+
+### Case and evidence operations
+
+- Empty required fields.
+- Invalid identifiers.
+- Duplicate submission.
+- Missing case.
+- Missing evidence.
+- Cross-case evidence ID.
+- Unauthorized delete/update.
+- Oversized, empty, corrupted, and unsupported audio.
+- A renamed file with unchanged bytes.
+- A changed file with different bytes.
+- Missing original evidence or missing reference hash.
+- Network failure during upload or save.
+- Refresh after a successful operation.
+- Two different users operating on different cases.
+
+### AI and reports
+
+- No configured model.
+- Model timeout or failure.
+- Unsupported audio.
+- Empty audio.
+- Invalid model response.
+- Partial model results.
+- Missing explanation data.
+- Inconclusive result.
+- Failed integrity check.
+- Report with missing required review/signature.
+- Incorrect or revoked public verification token.
+- Confirm no fabricated score or result appears when a model is unavailable.
+
+### Interface and browser
+
+- Browser refresh on each major screen.
+- Back and Forward navigation.
+- Open and close every modal.
+- Repeated click on Save/Submit.
+- Empty list, search with no results, and filters.
+- Small mobile viewport and keyboard-only navigation.
+- Slow API response and server error.
+- Long filenames, long case titles, unusual characters, and large metadata values.
+
+Do not report a test as passed merely because the UI displayed a success message. Verify the resulting server response and persisted data.
+
+## 17. PHASE FIFTEEN — FIX THE STORAGE AND DATA-CONSISTENCY PROBLEMS
+
+Inspect the JSON-file persistence implementation and all in-memory state.
+
+- Ensure the server is the source of truth for authenticated identity, roles, cases, evidence metadata, analysis results, expert reviews, notifications, and audit events.
+- Do not let frontend mock data override a valid empty server response.
+- Remove duplicate sources of truth where practical.
+- Ensure all updates have consistent validation and error handling.
+- Ensure persisted records remain available after a server restart.
+- Handle missing or invalid database files safely.
+- Avoid data corruption during concurrent writes.
+- Avoid leaking another user's records through shared global state.
+- Validate case/evidence relationships before updates.
+- Use atomic or otherwise safe persistence operations where appropriate.
+- Keep the implementation compatible with the existing project environment.
+- If a proper database is needed for reliable concurrent use, document the migration and implement it only if the current environment supports it. Do not claim the JSON store provides database-grade transaction guarantees.
+
+## 18. PHASE SIXTEEN — AUTOMATED TESTS, BUILD, AND VERIFICATION
+
+First inspect the scripts and test infrastructure that already exist. Then add useful automated tests without unnecessarily changing the project's framework.
+
+At minimum, add tests for:
+
+- Role-permission functions.
+- Authentication/session middleware.
+- Unauthorized API requests.
+- Case CRUD and persistence.
+- Evidence upload validation.
+- Real SHA-256 calculation and verification.
+- Missing-original-hash behaviour.
+- Analysis-model-unavailable behaviour.
+- Chain-of-custody record creation and access restrictions.
+- Report data correctness.
+- Public verification behaviour.
+- UI navigation and Back controls.
+- No unintended sample identity or hard-coded verdict appearing in a new workspace.
+
+If the environment supports it, run the project's dependency installation, TypeScript/lint checks, production build, unit tests, API integration tests, and browser end-to-end tests.
+
+Do not add unnecessary frameworks or dependencies if the existing setup can handle the test. Do not silently alter the dependency versions to hide a problem.
+
+If a command fails, capture the real error, fix it if possible, and rerun it. If execution is blocked by the environment, report the exact limitation and leave the relevant test marked as blocked—not passed.
+
+## 19. REQUIRED IMPLEMENTATION WORKFLOW
+
+Work in this order:
+
+**Stage 1 — Baseline audit:** inspect all source files, map the routes and roles, identify every defect, and establish which tests can run.
+
+**Stage 2 — Critical security fixes:** protect private APIs, fix authentication and role enforcement, remove universal PINs and exposed OTPs, and remove privilege-escalation paths.
+
+**Stage 3 — Data integrity:** eliminate unintended mock fallbacks, fix evidence storage and SHA-256 verification, and correct chain-of-custody persistence.
+
+**Stage 4 — Forensic correctness:** eliminate hard-coded predictions and fabricated XAI/model/biometric findings. Implement real integration where possible and honest unavailable states where not.
+
+**Stage 5 — UI and navigation:** improve the landing page, add consistent Back navigation, fix all forms, buttons, modals, loading/error states, and responsive layouts.
+
+**Stage 6 — Role-by-role testing:** execute the full permissions matrix and negative security tests.
+
+**Stage 7 — Regression and final verification:** run the build and all available automated tests, fix regressions, and verify the final project state.
+
+Do not stop after each stage to ask me whether you should continue. Continue through all feasible stages.
+
+## 20. FINAL DELIVERABLES
+
+When you finish, provide:
+
+1. **A concise executive summary** of the major defects found and fixed.
+2. **A detailed defect table** with ID, severity, screen/API/file, original problem, fix implemented, and test evidence.
+3. **A complete screen-by-screen QA checklist** showing Pass, Fail, Blocked, or Not Run.
+4. **A four-role authorization matrix** showing allowed and denied actions and the tests used to verify them.
+5. **A security findings report** identifying remaining risks.
+6. **A list of fake/demo functionality removed or isolated**, including fake users, sample cases, simulated audio, fabricated analysis scores, mock explanations, biometric placeholders, fake signatures, and demo PINs.
+7. **The actual build and test results**, including the commands run and any failures.
+8. **A list of remaining limitations**, especially unavailable model integrations, real email delivery, biometric hardware/provider requirements, or other external dependencies.
+9. **A final regression summary** confirming whether Back navigation, sign-in, registration, each role, evidence upload, hash verification, analysis, review, reports, audit logs, and settings were actually tested.
+10. **The final modified project files in the existing AI Studio project.** Do not provide only instructions or a proposed patch. Apply the fixes to the existing project.
+
+### Final acceptance criteria
+
+The project is not complete simply because it looks better.
+
+It is acceptable only when:
+
+- The landing page is professional and does not misrepresent simulated visuals as evidence.
+- Back navigation works consistently across applicable screens.
+- Sarah Anderson and other seeded sample identities do not unexpectedly appear in a new user's workspace.
+- There is no universal PIN or shared production password.
+- Private backend routes enforce authentication and role permissions.
+- Users cannot grant themselves roles or access unauthorized cases.
+- The frontend and backend use consistent persisted data.
+- Evidence hashes are calculated from real file bytes.
+- Missing reference hashes never result in automatic verification success.
+- The application never presents hard-coded deepfake results as real model predictions.
+- XAI, speaker verification, biometric, signature, and report claims accurately reflect what was actually executed.
+- Every button, form, modal, and navigation link works or clearly explains why it is unavailable.
+- The project passes all tests that can be executed in the available environment.
+- Every test that could not be executed is explicitly identified as blocked or not run.
+
+**Start inspecting the existing project now. Find defects beyond the examples I mentioned, fix them in the code, and retest. Do not give me a superficial UI polish or a list of recommendations while leaving the underlying defects unchanged.**
